@@ -1,0 +1,78 @@
+name: Publish MixEngine Generated Assets
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v0.1.0
+    paths:
+      - "src/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/publish-mixengine-assets.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish-assets:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: v0.1.0
+          fetch-depth: 0
+
+      - name: Configure
+        run: cmake -S . -B build -A x64
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Render all assets
+        shell: pwsh
+        run: |
+          .\build\Release\125A_Knob_Designer.exe exports
+
+      - name: Collect MixEngine knob filmstrips
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path published\mixengine | Out-Null
+          Get-ChildItem exports -Filter "125A_MixEngine_Analog_*.png" |
+            Copy-Item -Destination published\mixengine
+
+          $files = Get-ChildItem published\mixengine -Filter *.png
+          if ($files.Count -ne 12) {
+            throw "Expected 12 MixEngine knob PNGs (S/M/L x 4 resolutions), found $($files.Count)."
+          }
+
+      - name: Publish to generated-assets-v0.1.0 branch
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --orphan generated-assets-v0.1.0
+          git rm -rf . 2>$null
+          New-Item -ItemType Directory -Force -Path assets\mixengine | Out-Null
+          Copy-Item published\mixengine\*.png assets\mixengine\
+
+          @"
+          # 125A Generated Assets
+
+          This branch is generated automatically from `v0.1.0`.
+
+          ## MixEngine Analog knob family
+
+          - S / M / L
+          - 1x / 1.5x / 2x / 3x
+          - PNG vertical filmstrips
+          - generated from the current 125A GUI Asset Designer renderer
+
+          Do not edit these PNGs manually. Regenerate them from the source branch.
+          "@ | Set-Content -Encoding UTF8 README.md
+
+          git add README.md assets\mixengine\*.png
+          git commit -m "Publish MixEngine generated assets"
+          git push --force origin generated-assets-v0.1.0
