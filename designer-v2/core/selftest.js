@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { calculateFilmstripDimensions, calculateFrameAngle, SIMPLE_OPTIONS, toRendererDesign } from './project-model.js';
+import { calculateFilmstripDimensions, calculateFrameAngle, validateExportPlan, SIMPLE_OPTIONS, toRendererDesign } from './project-model.js';
 
 const sample = JSON.parse(fs.readFileSync(path.resolve('designer-v2/examples/knob-dark-metal.125agui.json'),'utf8'));
 const d = toRendererDesign(sample);
@@ -19,6 +19,29 @@ const dim=calculateFilmstripDimensions(sample);
 assert(dim.width===96 && dim.height===12288,'vertical filmstrip geometry wrong');
 assert(calculateFrameAngle(sample,0)===-135,'first frame angle wrong');
 assert(calculateFrameAngle(sample,127)===135,'last frame angle wrong');
+
+const horizontal=structuredClone(sample);
+horizontal.output.layout='horizontal';
+let hdim=calculateFilmstripDimensions(horizontal);
+assert(hdim.width===12288 && hdim.height===96,'horizontal filmstrip geometry wrong');
+
+const grid=structuredClone(sample);
+grid.output.layout='grid';
+let gdim=calculateFilmstripDimensions(grid);
+assert(gdim.columns===12 && gdim.rows===11,'grid topology wrong');
+assert(gdim.width===1152 && gdim.height===1056,'grid filmstrip geometry wrong');
+
+const plan=validateExportPlan(sample);
+assert(plan.ok,'default export plan must be safe');
+assert(plan.supersample===2,'default supersample should fall back to 2');
+
+const unsafe=structuredClone(sample);
+unsafe.output.frameHeight=192;
+unsafe.output.frameWidth=192;
+unsafe.output.frameCount=256;
+unsafe.output.layout='vertical';
+const unsafePlan=validateExportPlan(unsafe);
+assert(!unsafePlan.ok,'oversized vertical filmstrip should fail safety validation');
 const mid=calculateFrameAngle(sample,63.5);
 assert(Math.abs(mid)<1e-9,'midpoint angle wrong');
 
