@@ -294,13 +294,13 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
     KnobStyle s {
         small ? L"MixEngine Analog S" :
         (large ? L"MixEngine Analog L" : L"MixEngine Analog M"),
-        {large ? 125u : 110u, 0, 0, 0},
+        {static_cast<std::uint8_t>(large ? 125 : 110), 0, 0, 0},
         {255, 49, 54, 60},
         {255, 13, 16, 20},
         {255, 49, 51, 53},
         {255, 10, 12, 15},
         {255, 4, 5, 7},
-        {large ? 120u : 100u, 226, 232, 238},
+        {static_cast<std::uint8_t>(large ? 120 : 100), 226, 232, 238},
         {255, 224, 54, 43},
         {255, 27, 29, 31},
         large ? 5.5f : (small ? 3.0f : 4.5f),
