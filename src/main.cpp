@@ -3,8 +3,10 @@
 #include <windows.h>
 
 #include <filesystem>
+#include <cmath>
 #include <iostream>
 #include <string>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -49,26 +51,45 @@ int wmain(int argc, wchar_t** argv) {
     KnobRenderer renderer;
     const auto styles = KnobRenderer::builtInStyles();
 
+    const std::vector<float> scaleFactors =
+        explicitCellSize
+            ? std::vector<float>{1.0f}
+            : std::vector<float>{1.0f, 1.5f, 2.0f, 3.0f};
+
     int failures = 0;
     for (const auto& style : styles) {
-        RenderOptions styleOptions = options;
-        if (!explicitCellSize) {
-            styleOptions.cellSize = style.preferredCellSize;
-        }
+        for (const float scaleFactor : scaleFactors) {
+            RenderOptions styleOptions = options;
 
-        const auto file =
-            outputDir /
-            (L"125A_" + safeFilename(style.name) + L"_" +
-             std::to_wstring(styleOptions.cellSize) + L"px_" +
-             std::to_wstring(styleOptions.frameCount) + L"f.png");
+            if (!explicitCellSize) {
+                styleOptions.cellSize = std::max(
+                    16,
+                    static_cast<int>(
+                        std::lround(
+                            static_cast<double>(style.preferredCellSize) *
+                            static_cast<double>(scaleFactor))));
+            }
 
-        std::wcout << L"Rendering " << style.name
-                   << L" -> " << file.wstring() << L"\n";
+            const int scalePercent =
+                static_cast<int>(std::lround(scaleFactor * 100.0f));
 
-        if (!renderer.renderVerticalFilmstrip(
-                style, styleOptions, file.wstring())) {
-            ++failures;
-            std::wcerr << L"FAILED: " << style.name << L"\n";
+            const auto file =
+                outputDir /
+                (L"125A_" + safeFilename(style.name) + L"_" +
+                 std::to_wstring(styleOptions.cellSize) + L"px_" +
+                 std::to_wstring(scalePercent) + L"pct_" +
+                 std::to_wstring(styleOptions.frameCount) + L"f.png");
+
+            std::wcout << L"Rendering " << style.name
+                       << L" @ " << scalePercent << L"%"
+                       << L" -> " << file.wstring() << L"\n";
+
+            if (!renderer.renderVerticalFilmstrip(
+                    style, styleOptions, file.wstring())) {
+                ++failures;
+                std::wcerr << L"FAILED: " << style.name
+                           << L" @ " << scalePercent << L"%\n";
+            }
         }
     }
 
