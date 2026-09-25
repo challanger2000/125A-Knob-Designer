@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AssetGeometry.h"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -48,6 +50,8 @@ struct KnobStyle {
     // Native export recommendation for this style.
     int preferredCellSize {128};
     int tickCount {13};
+    AssetGeometryPolicy geometry {};
+
 };
 
 struct RenderOptions {
