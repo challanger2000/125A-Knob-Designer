@@ -1,4 +1,5 @@
 #include "KnobRenderer.h"
+#include "HardwareRenderer.h"
 
 #include <windows.h>
 
@@ -93,11 +94,48 @@ int wmain(int argc, wchar_t** argv) {
         }
     }
 
+    HardwareRenderer hardwareRenderer;
+    const auto hardwareStyles = HardwareRenderer::builtInStyles();
+
+    for (const auto& style : hardwareStyles) {
+        for (const float scaleFactor : scaleFactors) {
+            const int cellSize = explicitCellSize
+                ? options.cellSize
+                : std::max(
+                    16,
+                    static_cast<int>(
+                        std::lround(
+                            static_cast<double>(style.preferredCellSize) *
+                            static_cast<double>(scaleFactor))));
+
+            const int scalePercent =
+                static_cast<int>(std::lround(scaleFactor * 100.0f));
+
+            const auto file =
+                outputDir /
+                (L"125A_" + safeFilename(style.name) + L"_" +
+                 std::to_wstring(cellSize) + L"px_" +
+                 std::to_wstring(scalePercent) + L"pct_" +
+                 std::to_wstring(style.stateCount) + L"states.png");
+
+            std::wcout << L"Rendering " << style.name
+                       << L" @ " << scalePercent << L"%"
+                       << L" -> " << file.wstring() << L"\n";
+
+            if (!hardwareRenderer.renderVerticalFilmstrip(
+                    style, cellSize, file.wstring())) {
+                ++failures;
+                std::wcerr << L"FAILED: " << style.name
+                           << L" @ " << scalePercent << L"%\n";
+            }
+        }
+    }
+
     if (failures != 0) {
         std::wcerr << failures << L" export(s) failed.\n";
         return 1;
     }
 
-    std::wcout << L"All knob filmstrips exported successfully.\n";
+    std::wcout << L"All GUI asset filmstrips exported successfully.\n";
     return 0;
 }
