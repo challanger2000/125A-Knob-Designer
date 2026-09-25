@@ -86,7 +86,7 @@ void drawScaleTicks(
     tickPen.SetStartCap(LineCapRound);
     tickPen.SetEndCap(LineCapRound);
 
-    constexpr int tickCount = 13;
+    const int tickCount = std::max(3, style.tickCount);
     for (int i = 0; i < tickCount; ++i) {
         const float t = static_cast<float>(i) / static_cast<float>(tickCount - 1);
         const float angle = -135.0f + t * 270.0f;
@@ -326,6 +326,8 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
     s.drawKnurling = !isSmall;
     s.drawPointerTip = true;
     s.drawBrushedBezel = !isSmall;
+    s.preferredCellSize = isSmall ? 64 : (isLarge ? 128 : 96);
+    s.tickCount = isLarge ? 15 : (isSmall ? 9 : 13);
     return s;
 }
 
