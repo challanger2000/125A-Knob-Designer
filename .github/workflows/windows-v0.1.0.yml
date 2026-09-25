@@ -30,8 +30,8 @@ jobs:
         shell: pwsh
         run: |
           $files = Get-ChildItem exports -Filter *.png
-          if ($files.Count -ne 6) {
-            throw "Expected 6 PNG filmstrips, found $($files.Count)."
+          if ($files.Count -ne 8) {
+            throw "Expected 8 PNG filmstrips, found $($files.Count)."
           }
           foreach ($file in $files) {
             if ($file.Length -le 0) {
