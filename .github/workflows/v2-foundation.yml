@@ -49,3 +49,32 @@ jobs:
         with:
           name: 125A-GUI-Designer-v0.2.0-SimpleMode-Web
           path: designer-v2/web/dist
+
+  windows-desktop:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install desktop dependencies
+        working-directory: designer-v2/web
+        shell: pwsh
+        run: npm install --no-audit --no-fund
+      - name: Build Windows desktop executable
+        working-directory: designer-v2/web
+        shell: pwsh
+        run: npm run desktop:build
+      - name: Collect Windows executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package-v2 | Out-Null
+          Copy-Item designer-v2/web/src-tauri/target/release/125a-gui-designer.exe package-v2/125A_GUI_Designer_v0.2.0.exe
+          Copy-Item designer-v2/README.md package-v2/README-v0.2.0.md
+          Copy-Item THIRD_PARTY_LICENSES/vstgui-edit-MIT.txt package-v2/vstgui-edit-MIT.txt
+      - name: Upload Windows desktop build
+        uses: actions/upload-artifact@v4
+        with:
+          name: 125A-GUI-Designer-v0.2.0-Windows-x64
+          path: package-v2
