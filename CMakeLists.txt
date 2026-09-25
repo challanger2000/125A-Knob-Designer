@@ -25,3 +25,25 @@ target_link_libraries(125A_Knob_Designer PRIVATE gdiplus)
 if(MSVC)
     target_compile_options(125A_Knob_Designer PRIVATE /W4 /permissive-)
 endif()
+
+
+add_executable(125A_GUI_Asset_Designer WIN32
+    src/GuiApp.cpp
+    src/KnobRenderer.cpp
+    src/KnobRenderer.h
+    src/AssetGeometry.h
+    src/HardwareRenderer.cpp
+    src/HardwareRenderer.h
+    src/FaderRenderer.cpp
+    src/FaderRenderer.h
+    src/MeterRenderer.cpp
+    src/MeterRenderer.h
+)
+
+target_compile_features(125A_GUI_Asset_Designer PRIVATE cxx_std_17)
+target_compile_definitions(125A_GUI_Asset_Designer PRIVATE UNICODE _UNICODE NOMINMAX)
+target_link_libraries(125A_GUI_Asset_Designer PRIVATE gdiplus comctl32)
+
+if(MSVC)
+    target_compile_options(125A_GUI_Asset_Designer PRIVATE /W4 /permissive-)
+endif()
