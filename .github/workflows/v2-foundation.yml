@@ -25,3 +25,6 @@ jobs:
       - name: Run CLI self-test
         shell: pwsh
         run: node designer-v2/cli/selftest.js
+      - name: Run shared renderer-adapter self-test
+        shell: pwsh
+        run: node designer-v2/core/selftest.js
