@@ -33,6 +33,9 @@ enum ControlId {
     IdFrame = 1004,
     IdRender = 1005,
     IdExport = 1006,
+    IdAssetName = 1007,
+    IdSavePreset = 1008,
+    IdLoadPreset = 1009,
 
     IdSize = 1101,
     IdFrames = 1102,
@@ -60,6 +63,9 @@ struct AppState {
     HWND scale {};
     HWND frame {};
     HWND status {};
+    HWND assetName {};
+    HWND savePreset {};
+    HWND loadPreset {};
 
     HWND knobPanel {};
     HWND knobSize {};
@@ -147,6 +153,85 @@ int selectedPreset() {
 
 void setStatus(const std::wstring& text) {
     SetWindowTextW(gApp.status, text.c_str());
+}
+
+std::wstring getWindowText(HWND h) {
+    const int len = GetWindowTextLengthW(h);
+    std::vector<wchar_t> buffer(static_cast<std::size_t>(len + 1), L'\0');
+    GetWindowTextW(h, buffer.data(), len + 1);
+    return buffer.data();
+}
+
+void applyAssetName() {
+    const std::wstring name = getWindowText(gApp.assetName);
+    if (name.empty()) {
+        return;
+    }
+
+    switch (selectedCategory()) {
+        case 0:
+            if (gApp.editedKnobValid) gApp.editedKnob.name = name;
+            break;
+        case 1:
+            if (gApp.editedHardwareValid) gApp.editedHardware.name = name;
+            break;
+        case 2:
+            if (gApp.editedFaderValid) gApp.editedFader.name = name;
+            break;
+        case 3:
+            if (gApp.editedMeterValid) gApp.editedMeter.name = name;
+            break;
+    }
+}
+
+std::wstring colorText(const Color& c) {
+    wchar_t buffer[16] {};
+    swprintf_s(
+        buffer,
+        L"%02X%02X%02X%02X",
+        static_cast<unsigned>(c.a),
+        static_cast<unsigned>(c.r),
+        static_cast<unsigned>(c.g),
+        static_cast<unsigned>(c.b));
+    return buffer;
+}
+
+Color parseColor(const std::wstring& text, Color fallback) {
+    if (text.size() != 8) {
+        return fallback;
+    }
+
+    unsigned value = 0;
+    if (swscanf_s(text.c_str(), L"%08X", &value) != 1) {
+        return fallback;
+    }
+
+    return {
+        static_cast<std::uint8_t>((value >> 24) & 0xFF),
+        static_cast<std::uint8_t>((value >> 16) & 0xFF),
+        static_cast<std::uint8_t>((value >> 8) & 0xFF),
+        static_cast<std::uint8_t>(value & 0xFF)
+    };
+}
+
+void iniWrite(
+    const std::wstring& path,
+    const wchar_t* section,
+    const wchar_t* key,
+    const std::wstring& value) {
+    WritePrivateProfileStringW(section, key, value.c_str(), path.c_str());
+}
+
+std::wstring iniRead(
+    const std::wstring& path,
+    const wchar_t* section,
+    const wchar_t* key,
+    const std::wstring& fallback = L"") {
+    wchar_t buffer[512] {};
+    GetPrivateProfileStringW(
+        section, key, fallback.c_str(),
+        buffer, 512, path.c_str());
+    return buffer;
 }
 
 int readInt(HWND edit, int fallback, int minValue, int maxValue) {
@@ -271,6 +356,7 @@ void applyKnobEditor() {
         SendMessageW(gApp.knobPointerTipToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
     gApp.editedKnob.drawBrushedBezel =
         SendMessageW(gApp.knobBrushedToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    applyAssetName();
 }
 
 void syncKnobEditorFromPreset() {
@@ -395,6 +481,7 @@ void applyHardwareEditor() {
             gApp.editedHardware.stateCount,
             2,
             16);
+    applyAssetName();
 }
 
 void applyFaderEditor() {
@@ -422,6 +509,7 @@ void applyFaderEditor() {
             gApp.editedFader.frameCount,
             2,
             256);
+    applyAssetName();
 }
 
 void applyMeterEditor() {
@@ -463,6 +551,7 @@ void applyMeterEditor() {
             gApp.editedMeter.endAngleDeg,
             -180.0f,
             180.0f);
+    applyAssetName();
 }
 
 void configureEditorForCategory() {
@@ -520,6 +609,7 @@ void configureEditorForCategory() {
             L"Preset wählen → Werte ändern → Vorschau → Export.\n"
             L"Das Originalpreset bleibt unverändert.");
         syncKnobEditorFromPreset();
+        SetWindowTextW(gApp.assetName, gApp.editedKnob.name.c_str());
     } else if (hardware) {
         SetWindowTextW(gApp.fieldLabel1, L"Größe px");
         SetWindowTextW(gApp.fieldLabel2, L"Zustände");
@@ -532,6 +622,7 @@ void configureEditorForCategory() {
             L"LED, Button oder Switch als Ausgangspunkt wählen.\n"
             L"Größe, Zustände und Materialfarben sind editierbar.");
         syncHardwareEditorFromPreset();
+        SetWindowTextW(gApp.assetName, gApp.editedHardware.name.c_str());
     } else if (fader) {
         SetWindowTextW(gApp.fieldLabel1, L"Breite px");
         SetWindowTextW(gApp.fieldLabel2, L"Höhe px");
@@ -545,6 +636,7 @@ void configureEditorForCategory() {
             L"Fader-Geometrie und Materialfarben editieren.\n"
             L"Der Export bleibt VSTGUI-filmstrip-tauglich.");
         syncFaderEditorFromPreset();
+        SetWindowTextW(gApp.assetName, gApp.editedFader.name.c_str());
     } else if (meter) {
         SetWindowTextW(gApp.fieldLabel1, L"Breite px");
         SetWindowTextW(gApp.fieldLabel2, L"Höhe px");
@@ -560,6 +652,7 @@ void configureEditorForCategory() {
             L"Meter-Abmessungen, Winkel und Farben editieren.\n"
             L"Die Nadel wird als deterministischer Filmstrip erzeugt.");
         syncMeterEditorFromPreset();
+        SetWindowTextW(gApp.assetName, gApp.editedMeter.name.c_str());
     }
 }
 
@@ -794,6 +887,226 @@ bool renderPreview() {
     return true;
 }
 
+bool choosePresetPath(HWND owner, bool save, std::wstring& path) {
+    wchar_t file[MAX_PATH] {};
+    OPENFILENAMEW ofn {};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = owner;
+    ofn.lpstrFilter =
+        L"125A Preset (*.125apreset)\0*.125apreset\0"
+        L"Alle Dateien (*.*)\0*.*\0";
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrDefExt = L"125apreset";
+    ofn.Flags = save
+        ? OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST
+        : OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+    const BOOL ok = save
+        ? GetSaveFileNameW(&ofn)
+        : GetOpenFileNameW(&ofn);
+
+    if (!ok) {
+        return false;
+    }
+
+    path = file;
+    return true;
+}
+
+void saveCustomPreset() {
+    std::wstring path;
+    if (!choosePresetPath(gApp.window, true, path)) {
+        return;
+    }
+
+    applyAssetName();
+    const int category = selectedCategory();
+    const int basePreset = selectedPreset();
+
+    iniWrite(path, L"Preset", L"Version", L"1");
+    iniWrite(path, L"Preset", L"Category", std::to_wstring(category));
+    iniWrite(path, L"Preset", L"BasePreset", std::to_wstring(basePreset));
+    iniWrite(path, L"Preset", L"Name", getWindowText(gApp.assetName));
+
+    if (category == 0 && gApp.editedKnobValid) {
+        applyKnobEditor();
+        iniWrite(path, L"Knob", L"Size", std::to_wstring(gApp.editedKnob.preferredCellSize));
+        iniWrite(path, L"Knob", L"Frames", std::to_wstring(gApp.editedKnobOptions.frameCount));
+        iniWrite(path, L"Knob", L"StartAngle", std::to_wstring(gApp.editedKnobOptions.startAngleDeg));
+        iniWrite(path, L"Knob", L"EndAngle", std::to_wstring(gApp.editedKnobOptions.endAngleDeg));
+        iniWrite(path, L"Knob", L"Ticks", std::to_wstring(gApp.editedKnob.tickCount));
+        iniWrite(path, L"Knob", L"AccentRing", gApp.editedKnob.drawAccentRing ? L"1" : L"0");
+        iniWrite(path, L"Knob", L"ScaleTicks", gApp.editedKnob.drawScaleTicks ? L"1" : L"0");
+        iniWrite(path, L"Knob", L"Knurling", gApp.editedKnob.drawKnurling ? L"1" : L"0");
+        iniWrite(path, L"Knob", L"PointerTip", gApp.editedKnob.drawPointerTip ? L"1" : L"0");
+        iniWrite(path, L"Knob", L"BrushedBezel", gApp.editedKnob.drawBrushedBezel ? L"1" : L"0");
+        iniWrite(path, L"Knob", L"BodyTop", colorText(gApp.editedKnob.bodyTop));
+        iniWrite(path, L"Knob", L"BodyBottom", colorText(gApp.editedKnob.bodyBottom));
+        iniWrite(path, L"Knob", L"BezelOuter", colorText(gApp.editedKnob.bezelOuter));
+        iniWrite(path, L"Knob", L"BezelInner", colorText(gApp.editedKnob.bezelInner));
+        iniWrite(path, L"Knob", L"Accent", colorText(gApp.editedKnob.accentRing));
+        iniWrite(path, L"Knob", L"Indicator", colorText(gApp.editedKnob.indicator));
+    } else if (category == 1 && gApp.editedHardwareValid) {
+        applyHardwareEditor();
+        iniWrite(path, L"Hardware", L"Kind", std::to_wstring(static_cast<int>(gApp.editedHardware.kind)));
+        iniWrite(path, L"Hardware", L"Size", std::to_wstring(gApp.editedHardware.preferredCellSize));
+        iniWrite(path, L"Hardware", L"States", std::to_wstring(gApp.editedHardware.stateCount));
+        iniWrite(path, L"Hardware", L"FaceTop", colorText(gApp.editedHardware.faceTop));
+        iniWrite(path, L"Hardware", L"FaceBottom", colorText(gApp.editedHardware.faceBottom));
+        iniWrite(path, L"Hardware", L"MetalTop", colorText(gApp.editedHardware.metalTop));
+        iniWrite(path, L"Hardware", L"MetalBottom", colorText(gApp.editedHardware.metalBottom));
+        iniWrite(path, L"Hardware", L"AccentOn", colorText(gApp.editedHardware.accentOn));
+        iniWrite(path, L"Hardware", L"AccentOff", colorText(gApp.editedHardware.accentOff));
+    } else if (category == 2 && gApp.editedFaderValid) {
+        applyFaderEditor();
+        iniWrite(path, L"Fader", L"Width", std::to_wstring(gApp.editedFader.preferredWidth));
+        iniWrite(path, L"Fader", L"Height", std::to_wstring(gApp.editedFader.preferredHeight));
+        iniWrite(path, L"Fader", L"Frames", std::to_wstring(gApp.editedFader.frameCount));
+        iniWrite(path, L"Fader", L"CapTop", colorText(gApp.editedFader.capTop));
+        iniWrite(path, L"Fader", L"CapBottom", colorText(gApp.editedFader.capBottom));
+        iniWrite(path, L"Fader", L"RailInner", colorText(gApp.editedFader.railInner));
+        iniWrite(path, L"Fader", L"RailOuter", colorText(gApp.editedFader.railOuter));
+        iniWrite(path, L"Fader", L"Indicator", colorText(gApp.editedFader.indicator));
+        iniWrite(path, L"Fader", L"Tick", colorText(gApp.editedFader.tick));
+    } else if (category == 3 && gApp.editedMeterValid) {
+        applyMeterEditor();
+        iniWrite(path, L"Meter", L"Width", std::to_wstring(gApp.editedMeter.preferredWidth));
+        iniWrite(path, L"Meter", L"Height", std::to_wstring(gApp.editedMeter.preferredHeight));
+        iniWrite(path, L"Meter", L"Frames", std::to_wstring(gApp.editedMeter.frameCount));
+        iniWrite(path, L"Meter", L"StartAngle", std::to_wstring(gApp.editedMeter.startAngleDeg));
+        iniWrite(path, L"Meter", L"EndAngle", std::to_wstring(gApp.editedMeter.endAngleDeg));
+        iniWrite(path, L"Meter", L"FaceTop", colorText(gApp.editedMeter.faceTop));
+        iniWrite(path, L"Meter", L"FaceBottom", colorText(gApp.editedMeter.faceBottom));
+        iniWrite(path, L"Meter", L"FrameTop", colorText(gApp.editedMeter.frameTop));
+        iniWrite(path, L"Meter", L"FrameBottom", colorText(gApp.editedMeter.frameBottom));
+        iniWrite(path, L"Meter", L"Needle", colorText(gApp.editedMeter.needle));
+        iniWrite(path, L"Meter", L"RedZone", colorText(gApp.editedMeter.redZone));
+    }
+
+    setStatus(L"Preset gespeichert: " + path);
+}
+
+void loadCustomPreset() {
+    std::wstring path;
+    if (!choosePresetPath(gApp.window, false, path)) {
+        return;
+    }
+
+    const int category = std::clamp(
+        std::stoi(iniRead(path, L"Preset", L"Category", L"0")), 0, 3);
+
+    SendMessageW(gApp.category, CB_SETCURSEL, category, 0);
+    populatePresets();
+
+    const int count = static_cast<int>(
+        SendMessageW(gApp.preset, CB_GETCOUNT, 0, 0));
+    const int basePreset = std::clamp(
+        std::stoi(iniRead(path, L"Preset", L"BasePreset", L"0")),
+        0, std::max(0, count - 1));
+
+    SendMessageW(gApp.preset, CB_SETCURSEL, basePreset, 0);
+    configureEditorForCategory();
+
+    const std::wstring name =
+        iniRead(path, L"Preset", L"Name", L"Custom Asset");
+    SetWindowTextW(gApp.assetName, name.c_str());
+
+    if (category == 0 && gApp.editedKnobValid) {
+        gApp.editedKnob.name = name;
+        gApp.editedKnob.preferredCellSize =
+            std::stoi(iniRead(path, L"Knob", L"Size", std::to_wstring(gApp.editedKnob.preferredCellSize)));
+        gApp.editedKnobOptions.frameCount =
+            std::stoi(iniRead(path, L"Knob", L"Frames", std::to_wstring(gApp.editedKnobOptions.frameCount)));
+        gApp.editedKnobOptions.startAngleDeg =
+            std::stof(iniRead(path, L"Knob", L"StartAngle", std::to_wstring(gApp.editedKnobOptions.startAngleDeg)));
+        gApp.editedKnobOptions.endAngleDeg =
+            std::stof(iniRead(path, L"Knob", L"EndAngle", std::to_wstring(gApp.editedKnobOptions.endAngleDeg)));
+        gApp.editedKnob.tickCount =
+            std::stoi(iniRead(path, L"Knob", L"Ticks", std::to_wstring(gApp.editedKnob.tickCount)));
+        gApp.editedKnob.drawAccentRing = iniRead(path, L"Knob", L"AccentRing", L"0") == L"1";
+        gApp.editedKnob.drawScaleTicks = iniRead(path, L"Knob", L"ScaleTicks", L"0") == L"1";
+        gApp.editedKnob.drawKnurling = iniRead(path, L"Knob", L"Knurling", L"0") == L"1";
+        gApp.editedKnob.drawPointerTip = iniRead(path, L"Knob", L"PointerTip", L"0") == L"1";
+        gApp.editedKnob.drawBrushedBezel = iniRead(path, L"Knob", L"BrushedBezel", L"0") == L"1";
+        gApp.editedKnob.bodyTop = parseColor(iniRead(path, L"Knob", L"BodyTop"), gApp.editedKnob.bodyTop);
+        gApp.editedKnob.bodyBottom = parseColor(iniRead(path, L"Knob", L"BodyBottom"), gApp.editedKnob.bodyBottom);
+        gApp.editedKnob.bezelOuter = parseColor(iniRead(path, L"Knob", L"BezelOuter"), gApp.editedKnob.bezelOuter);
+        gApp.editedKnob.bezelInner = parseColor(iniRead(path, L"Knob", L"BezelInner"), gApp.editedKnob.bezelInner);
+        gApp.editedKnob.accentRing = parseColor(iniRead(path, L"Knob", L"Accent"), gApp.editedKnob.accentRing);
+        gApp.editedKnob.indicator = parseColor(iniRead(path, L"Knob", L"Indicator"), gApp.editedKnob.indicator);
+        setEditInt(gApp.knobSize, gApp.editedKnob.preferredCellSize);
+        setEditInt(gApp.knobFrames, gApp.editedKnobOptions.frameCount);
+        setEditFloat(gApp.knobStartAngle, gApp.editedKnobOptions.startAngleDeg);
+        setEditFloat(gApp.knobEndAngle, gApp.editedKnobOptions.endAngleDeg);
+        setEditInt(gApp.knobTicks, gApp.editedKnob.tickCount);
+        SendMessageW(gApp.knobAccentToggle, BM_SETCHECK, gApp.editedKnob.drawAccentRing ? BST_CHECKED : BST_UNCHECKED, 0);
+        SendMessageW(gApp.knobTicksToggle, BM_SETCHECK, gApp.editedKnob.drawScaleTicks ? BST_CHECKED : BST_UNCHECKED, 0);
+        SendMessageW(gApp.knobKnurlToggle, BM_SETCHECK, gApp.editedKnob.drawKnurling ? BST_CHECKED : BST_UNCHECKED, 0);
+        SendMessageW(gApp.knobPointerTipToggle, BM_SETCHECK, gApp.editedKnob.drawPointerTip ? BST_CHECKED : BST_UNCHECKED, 0);
+        SendMessageW(gApp.knobBrushedToggle, BM_SETCHECK, gApp.editedKnob.drawBrushedBezel ? BST_CHECKED : BST_UNCHECKED, 0);
+    } else if (category == 1 && gApp.editedHardwareValid) {
+        gApp.editedHardware.name = name;
+        gApp.editedHardware.preferredCellSize =
+            std::stoi(iniRead(path, L"Hardware", L"Size", std::to_wstring(gApp.editedHardware.preferredCellSize)));
+        gApp.editedHardware.stateCount =
+            std::stoi(iniRead(path, L"Hardware", L"States", std::to_wstring(gApp.editedHardware.stateCount)));
+        gApp.editedHardware.kind = static_cast<HardwareAssetKind>(
+            std::stoi(iniRead(path, L"Hardware", L"Kind", std::to_wstring(static_cast<int>(gApp.editedHardware.kind)))));
+        gApp.editedHardware.faceTop = parseColor(iniRead(path, L"Hardware", L"FaceTop"), gApp.editedHardware.faceTop);
+        gApp.editedHardware.faceBottom = parseColor(iniRead(path, L"Hardware", L"FaceBottom"), gApp.editedHardware.faceBottom);
+        gApp.editedHardware.metalTop = parseColor(iniRead(path, L"Hardware", L"MetalTop"), gApp.editedHardware.metalTop);
+        gApp.editedHardware.metalBottom = parseColor(iniRead(path, L"Hardware", L"MetalBottom"), gApp.editedHardware.metalBottom);
+        gApp.editedHardware.accentOn = parseColor(iniRead(path, L"Hardware", L"AccentOn"), gApp.editedHardware.accentOn);
+        gApp.editedHardware.accentOff = parseColor(iniRead(path, L"Hardware", L"AccentOff"), gApp.editedHardware.accentOff);
+        setEditInt(gApp.knobSize, gApp.editedHardware.preferredCellSize);
+        setEditInt(gApp.knobFrames, gApp.editedHardware.stateCount);
+    } else if (category == 2 && gApp.editedFaderValid) {
+        gApp.editedFader.name = name;
+        gApp.editedFader.preferredWidth =
+            std::stoi(iniRead(path, L"Fader", L"Width", std::to_wstring(gApp.editedFader.preferredWidth)));
+        gApp.editedFader.preferredHeight =
+            std::stoi(iniRead(path, L"Fader", L"Height", std::to_wstring(gApp.editedFader.preferredHeight)));
+        gApp.editedFader.frameCount =
+            std::stoi(iniRead(path, L"Fader", L"Frames", std::to_wstring(gApp.editedFader.frameCount)));
+        gApp.editedFader.capTop = parseColor(iniRead(path, L"Fader", L"CapTop"), gApp.editedFader.capTop);
+        gApp.editedFader.capBottom = parseColor(iniRead(path, L"Fader", L"CapBottom"), gApp.editedFader.capBottom);
+        gApp.editedFader.railInner = parseColor(iniRead(path, L"Fader", L"RailInner"), gApp.editedFader.railInner);
+        gApp.editedFader.railOuter = parseColor(iniRead(path, L"Fader", L"RailOuter"), gApp.editedFader.railOuter);
+        gApp.editedFader.indicator = parseColor(iniRead(path, L"Fader", L"Indicator"), gApp.editedFader.indicator);
+        gApp.editedFader.tick = parseColor(iniRead(path, L"Fader", L"Tick"), gApp.editedFader.tick);
+        setEditInt(gApp.knobSize, gApp.editedFader.preferredWidth);
+        setEditInt(gApp.knobFrames, gApp.editedFader.preferredHeight);
+        setEditInt(gApp.knobStartAngle, gApp.editedFader.frameCount);
+    } else if (category == 3 && gApp.editedMeterValid) {
+        gApp.editedMeter.name = name;
+        gApp.editedMeter.preferredWidth =
+            std::stoi(iniRead(path, L"Meter", L"Width", std::to_wstring(gApp.editedMeter.preferredWidth)));
+        gApp.editedMeter.preferredHeight =
+            std::stoi(iniRead(path, L"Meter", L"Height", std::to_wstring(gApp.editedMeter.preferredHeight)));
+        gApp.editedMeter.frameCount =
+            std::stoi(iniRead(path, L"Meter", L"Frames", std::to_wstring(gApp.editedMeter.frameCount)));
+        gApp.editedMeter.startAngleDeg =
+            std::stof(iniRead(path, L"Meter", L"StartAngle", std::to_wstring(gApp.editedMeter.startAngleDeg)));
+        gApp.editedMeter.endAngleDeg =
+            std::stof(iniRead(path, L"Meter", L"EndAngle", std::to_wstring(gApp.editedMeter.endAngleDeg)));
+        gApp.editedMeter.faceTop = parseColor(iniRead(path, L"Meter", L"FaceTop"), gApp.editedMeter.faceTop);
+        gApp.editedMeter.faceBottom = parseColor(iniRead(path, L"Meter", L"FaceBottom"), gApp.editedMeter.faceBottom);
+        gApp.editedMeter.frameTop = parseColor(iniRead(path, L"Meter", L"FrameTop"), gApp.editedMeter.frameTop);
+        gApp.editedMeter.frameBottom = parseColor(iniRead(path, L"Meter", L"FrameBottom"), gApp.editedMeter.frameBottom);
+        gApp.editedMeter.needle = parseColor(iniRead(path, L"Meter", L"Needle"), gApp.editedMeter.needle);
+        gApp.editedMeter.redZone = parseColor(iniRead(path, L"Meter", L"RedZone"), gApp.editedMeter.redZone);
+        setEditInt(gApp.knobSize, gApp.editedMeter.preferredWidth);
+        setEditInt(gApp.knobFrames, gApp.editedMeter.preferredHeight);
+        setEditInt(gApp.knobStartAngle, gApp.editedMeter.frameCount);
+        setEditFloat(gApp.knobEndAngle, gApp.editedMeter.startAngleDeg);
+        setEditFloat(gApp.knobTicks, gApp.editedMeter.endAngleDeg);
+    }
+
+    renderPreview();
+    setStatus(L"Preset geladen: " + path);
+}
+
 void exportSelectedSet() {
     const fs::path outputDir =
         fs::current_path() / L"exports-gui";
@@ -819,13 +1132,30 @@ void exportSelectedSet() {
         const int percent =
             static_cast<int>(std::lround(factor * 100.0f));
 
-        const fs::path file =
+        const fs::path tempFile =
             outputDir /
             (baseName + L"_" +
              std::to_wstring(percent) +
-             L"pct.png");
+             L"pct_tmp.png");
 
-        if (!renderSelectedTo(file, factor)) {
+        if (!renderSelectedTo(tempFile, factor)) {
+            ++failures;
+            continue;
+        }
+
+        const fs::path finalFile =
+            outputDir /
+            (baseName + L"_" +
+             std::to_wstring(gApp.cellWidth) + L"x" +
+             std::to_wstring(gApp.cellHeight) + L"px_" +
+             std::to_wstring(percent) + L"pct_" +
+             std::to_wstring(gApp.frameCount) + L"f.png");
+
+        std::error_code renameEc;
+        fs::remove(finalFile, renameEc);
+        renameEc.clear();
+        fs::rename(tempFile, finalFile, renameEc);
+        if (renameEc) {
             ++failures;
         }
     }
@@ -1021,11 +1351,33 @@ void createControls(HWND window) {
         reinterpret_cast<HMENU>(IdFrame),
         nullptr, nullptr);
 
+    makeStatic(L"Asset-Name", 24, 296, 260, 20);
+    gApp.assetName = makeEdit(
+        window,
+        reinterpret_cast<HMENU>(IdAssetName),
+        24, 318, 270, 26, font);
+
+    gApp.savePreset = makeButton(
+        window,
+        reinterpret_cast<HMENU>(IdSavePreset),
+        L"Preset speichern...",
+        24, 354, 130, 32,
+        BS_PUSHBUTTON,
+        font);
+
+    gApp.loadPreset = makeButton(
+        window,
+        reinterpret_cast<HMENU>(IdLoadPreset),
+        L"Preset laden...",
+        164, 354, 130, 32,
+        BS_PUSHBUTTON,
+        font);
+
     HWND renderButton = makeButton(
         window,
         reinterpret_cast<HMENU>(IdRender),
         L"Vorschau rendern",
-        24, 306, 270, 36,
+        24, 398, 270, 34,
         BS_PUSHBUTTON,
         font);
 
@@ -1033,7 +1385,7 @@ void createControls(HWND window) {
         window,
         reinterpret_cast<HMENU>(IdExport),
         L"4 Auflösungen exportieren",
-        24, 350, 270, 36,
+        24, 440, 270, 34,
         BS_PUSHBUTTON,
         font);
 
@@ -1041,12 +1393,12 @@ void createControls(HWND window) {
         L"Renderer: dieselbe Engine wie CI/GitHub\n"
         L"1x / 1.5x / 2x / 3x\n"
         L"Feste Geometrie / Safe Area / Pixel-Snap",
-        24, 410, 270, 72);
+        24, 490, 270, 62);
 
     gApp.status = CreateWindowExW(
         0, L"STATIC", L"Bereit.",
         WS_CHILD | WS_VISIBLE | SS_LEFT,
-        24, 510, 270, 90,
+        24, 570, 270, 72,
         window, nullptr, nullptr, nullptr);
 
     // Knob editor.
@@ -1148,6 +1500,7 @@ void createControls(HWND window) {
 
     for (HWND c : {
         gApp.category, gApp.preset, gApp.scale, gApp.frame,
+        gApp.assetName, gApp.savePreset, gApp.loadPreset,
         renderButton, exportButton, gApp.status}) {
         SendMessageW(
             c, WM_SETFONT,
@@ -1215,6 +1568,27 @@ LRESULT CALLBACK windowProc(
             }
 
             if (id == IdScale && code == CBN_SELCHANGE) {
+                renderPreview();
+                return 0;
+            }
+
+            if (id == IdSavePreset) {
+                saveCustomPreset();
+                return 0;
+            }
+
+            if (id == IdLoadPreset) {
+                loadCustomPreset();
+                return 0;
+            }
+
+            if ((id == IdAssetName ||
+                 id == IdSize ||
+                 id == IdFrames ||
+                 id == IdStartAngle ||
+                 id == IdEndAngle ||
+                 id == IdTicks) &&
+                code == EN_KILLFOCUS) {
                 renderPreview();
                 return 0;
             }
