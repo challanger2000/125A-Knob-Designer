@@ -9,6 +9,7 @@ add_executable(125A_Knob_Designer
     src/main.cpp
     src/KnobRenderer.cpp
     src/KnobRenderer.h
+    src/AssetGeometry.h
     src/HardwareRenderer.cpp
     src/HardwareRenderer.h
 )
