@@ -122,7 +122,8 @@ app.innerHTML = `
       </section>
 
       <div class="actions">
-        <button id="save" class="primary" type="button">Projekt speichern</button>
+        <button id="exportPng" class="primary" type="button">Filmstrip PNG exportieren</button>
+        <button id="save" type="button">Projekt speichern</button>
         <button id="reset" type="button">Zurücksetzen</button>
       </div>
     </aside>
@@ -178,14 +179,49 @@ for (const id of ['name','shape','material','color','lighting','indicator','indi
 }
 $('angle').addEventListener('input', () => preview.setPreviewAngle(Number($('angle').value)));
 
+function safeFileName(value) {
+  return (value || '125A-Knob')
+    .replace(/[<>:"/\\|?*\x00-\x1F]+/g, '_')
+    .replace(/[. ]+$/g, '')
+    .trim() || '125A-Knob';
+}
+
+function downloadBlob(blob, fileName) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+$('exportPng').addEventListener('click', async () => {
+  syncAndRender();
+  const button = $('exportPng');
+  button.disabled = true;
+  const oldText = button.textContent;
+  try {
+    $('status').textContent = 'Filmstrip wird gerendert …';
+    const blob = await preview.exportFilmstrip(project, (done, total) => {
+      $('status').textContent = `Filmstrip: ${done} / ${total} Frames`;
+    });
+    const name = safeFileName(project.name);
+    downloadBlob(blob, `${name}_${project.output.frameWidth}px_${project.output.frameCount}f_vertical.png`);
+    $('status').textContent = `Export fertig · ${project.output.frameWidth}px · ${project.output.frameCount} Frames`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Export fehlgeschlagen';
+    alert(error.message || 'Filmstrip-Export fehlgeschlagen.');
+  } finally {
+    button.disabled = false;
+    button.textContent = oldText;
+    preview.setPreviewAngle(Number($('angle').value));
+  }
+});
+
 $('save').addEventListener('click', () => {
   syncAndRender();
   const blob = new Blob([JSON.stringify(project, null, 2) + '\n'], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = (project.name.replace(/[^a-z0-9_-]+/gi, '_') || '125A-Knob') + '.125agui.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 0);
+  downloadBlob(blob, safeFileName(project.name) + '.125agui.json');
 });
 
 $('reset').addEventListener('click', () => {
