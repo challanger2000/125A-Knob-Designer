@@ -26,11 +26,12 @@ int wmain(int argc, wchar_t** argv) {
 
     RenderOptions options;
     fs::path outputDir = L"exports";
+    const bool explicitCellSize = argc >= 3;
 
     if (argc >= 2) {
         outputDir = argv[1];
     }
-    if (argc >= 3) {
+    if (explicitCellSize) {
         options.cellSize = std::max(16, _wtoi(argv[2]));
     }
     if (argc >= 4) {
@@ -50,17 +51,22 @@ int wmain(int argc, wchar_t** argv) {
 
     int failures = 0;
     for (const auto& style : styles) {
+        RenderOptions styleOptions = options;
+        if (!explicitCellSize) {
+            styleOptions.cellSize = style.preferredCellSize;
+        }
+
         const auto file =
             outputDir /
             (L"125A_" + safeFilename(style.name) + L"_" +
-             std::to_wstring(options.cellSize) + L"px_" +
-             std::to_wstring(options.frameCount) + L"f.png");
+             std::to_wstring(styleOptions.cellSize) + L"px_" +
+             std::to_wstring(styleOptions.frameCount) + L"f.png");
 
         std::wcout << L"Rendering " << style.name
                    << L" -> " << file.wstring() << L"\n";
 
         if (!renderer.renderVerticalFilmstrip(
-                style, options, file.wstring())) {
+                style, styleOptions, file.wstring())) {
             ++failures;
             std::wcerr << L"FAILED: " << style.name << L"\n";
         }
