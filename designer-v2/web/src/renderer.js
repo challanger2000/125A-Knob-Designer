@@ -72,7 +72,7 @@ function makeIndicator(indicator, topRadius) {
 export class KnobPreviewRenderer {
   constructor(canvas) {
     this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -95,6 +95,7 @@ export class KnobPreviewRenderer {
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -1.28;
     floor.receiveShadow = true;
+    this.floor = floor;
     this.scene.add(floor);
 
     this.hemi = new THREE.HemisphereLight(0xbfd3e6, 0x1b1e23, 1.1);
@@ -188,6 +189,69 @@ export class KnobPreviewRenderer {
 
   render() {
     this.renderer.render(this.scene, this.camera);
+  }
+
+  async exportFilmstrip(project, onProgress = () => {}) {
+    const { frameWidth, frameHeight, frameCount, startAngle, endAngle, layout } = project.output;
+    if (layout !== 'vertical') {
+      throw new Error('Der Einfach-Modus exportiert momentan vertikale VSTGUI-Filmstrips.');
+    }
+
+    const stripWidth = frameWidth;
+    const stripHeight = frameHeight * frameCount;
+    if (stripWidth > 32767 || stripHeight > 32767) {
+      throw new Error(`Filmstrip zu groß (${stripWidth} × ${stripHeight}). Bitte kleinere Größe oder weniger Frames wählen.`);
+    }
+
+    const oldPixelRatio = this.renderer.getPixelRatio();
+    const oldBackground = this.scene.background;
+    const oldFloorVisible = this.floor.visible;
+    const oldRotation = this.group.rotation.y;
+
+    const rect = this.canvas.getBoundingClientRect();
+    const restoreWidth = Math.max(320, Math.floor(rect.width));
+    const restoreHeight = Math.max(320, Math.floor(rect.height));
+
+    const strip = document.createElement('canvas');
+    strip.width = stripWidth;
+    strip.height = stripHeight;
+    const ctx = strip.getContext('2d', { alpha: true });
+    if (!ctx) throw new Error('PNG-Canvas konnte nicht erstellt werden.');
+
+    try {
+      this.renderer.setPixelRatio(1);
+      this.renderer.setSize(frameWidth, frameHeight, false);
+      this.camera.aspect = frameWidth / frameHeight;
+      this.camera.updateProjectionMatrix();
+      this.scene.background = null;
+      this.floor.visible = false;
+
+      for (let i = 0; i < frameCount; i++) {
+        const t = frameCount <= 1 ? 0 : i / (frameCount - 1);
+        const angle = startAngle + (endAngle - startAngle) * t;
+        this.group.rotation.y = THREE.MathUtils.degToRad(-angle);
+        this.render();
+        ctx.clearRect(0, i * frameHeight, frameWidth, frameHeight);
+        ctx.drawImage(this.canvas, 0, i * frameHeight, frameWidth, frameHeight);
+        if (i === 0 || i === frameCount - 1 || i % 8 === 0) {
+          onProgress(i + 1, frameCount);
+          await new Promise(resolve => requestAnimationFrame(resolve));
+        }
+      }
+
+      return await new Promise((resolve, reject) => {
+        strip.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG konnte nicht erzeugt werden.')), 'image/png');
+      });
+    } finally {
+      this.group.rotation.y = oldRotation;
+      this.scene.background = oldBackground;
+      this.floor.visible = oldFloorVisible;
+      this.renderer.setPixelRatio(oldPixelRatio);
+      this.renderer.setSize(restoreWidth, restoreHeight, false);
+      this.camera.aspect = restoreWidth / restoreHeight;
+      this.camera.updateProjectionMatrix();
+      this.render();
+    }
   }
 
   dispose() {
