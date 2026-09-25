@@ -222,6 +222,18 @@ function normalizeImportedProject(input) {
   };
 }
 
+function setSelectValue(select, value, suffix='') {
+  const text = String(value);
+  if (![...select.options].some(option => option.value === text)) {
+    const option = document.createElement('option');
+    option.value = text;
+    option.textContent = `${text}${suffix}`;
+    option.dataset.imported = 'true';
+    select.appendChild(option);
+  }
+  select.value = text;
+}
+
 function applyProjectToControls() {
   $('name').value = project.name;
   $('shape').value = project.design.shape;
@@ -232,8 +244,8 @@ function applyProjectToControls() {
   $('indicatorColor').value = project.design.indicator.color.slice(0, 7);
   $('length').value = String(project.design.indicator.length);
   const size = Math.round(project.output.frameWidth);
-  $('size').value = ['64','96','128','192'].includes(String(size)) ? String(size) : '96';
-  $('frames').value = ['64','128','256'].includes(String(project.output.frameCount)) ? String(project.output.frameCount) : '128';
+  setSelectValue($('size'), size, ' px');
+  setSelectValue($('frames'), Math.round(project.output.frameCount));
   $('layout').value = project.output.layout;
   $('supersample').value = String(project.output.supersample);
   $('angle').min = String(Math.min(project.output.startAngle, project.output.endAngle));
@@ -284,8 +296,7 @@ function downloadBlob(blob, fileName) {
 }
 
 $('exportPng').addEventListener('click', async () => {
-  applyProjectToControls();
-syncAndRender();
+  syncAndRender();
   const button = $('exportPng');
   button.disabled = true;
   const oldText = button.textContent;
@@ -373,4 +384,5 @@ $('reset').addEventListener('click', () => {
   syncAndRender();
 });
 
+applyProjectToControls();
 syncAndRender();
