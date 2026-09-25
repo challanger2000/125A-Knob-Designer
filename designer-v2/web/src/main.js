@@ -142,6 +142,8 @@ app.innerHTML = `
       <div class="actions">
         <button id="exportPng" class="primary" type="button">Filmstrip PNG exportieren</button>
         <button id="centerQa" type="button">Center-/Wobble-QA</button>
+        <button id="load" type="button">Projekt öffnen</button>
+        <input id="loadFile" type="file" accept=".125agui,.json,.125agui.json,application/json" hidden>
         <button id="save" type="button">Projekt speichern</button>
         <button id="reset" type="button">Zurücksetzen</button>
       </div>
@@ -172,6 +174,72 @@ $('lighting').value = project.lighting.preset;
 $('indicator').value = project.design.indicator.type;
 
 const preview = new KnobPreviewRenderer($('preview'));
+
+function normalizeImportedProject(input) {
+  if (!input || input.format !== '125A-GUI' || !input.design || !input.lighting || !input.output) {
+    throw new Error('Keine gültige 125A-GUI-Projektdatei.');
+  }
+
+  const allowedShapes = new Set(SIMPLE_OPTIONS.shapes);
+  const allowedMaterials = new Set(SIMPLE_OPTIONS.materials);
+  const allowedLighting = new Set(SIMPLE_OPTIONS.lighting);
+  const allowedIndicators = new Set(SIMPLE_OPTIONS.indicators);
+  const allowedLayouts = new Set(['vertical', 'horizontal', 'grid']);
+
+  return {
+    format: '125A-GUI',
+    version: Number.isInteger(input.version) ? input.version : 1,
+    name: String(input.name || '125A Knob').slice(0, 120),
+    asset: { type: 'knob' },
+    design: {
+      shape: allowedShapes.has(input.design.shape) ? input.design.shape : 'studio',
+      material: allowedMaterials.has(input.design.material) ? input.design.material : 'metal-dark',
+      baseColor: /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(input.design.baseColor || '') ? input.design.baseColor : '#242A31FF',
+      accentColor: /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(input.design.accentColor || '') ? input.design.accentColor : '#657A8FFF',
+      indicator: {
+        enabled: input.design.indicator?.enabled !== false,
+        type: allowedIndicators.has(input.design.indicator?.type) ? input.design.indicator.type : 'line',
+        color: /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(input.design.indicator?.color || '') ? input.design.indicator.color : '#E8EEF4FF',
+        length: Math.max(15, Math.min(95, Number(input.design.indicator?.length ?? 66))),
+        width: Math.max(0.5, Math.min(20, Number(input.design.indicator?.width ?? 3)))
+      },
+      expert: input.design.expert && typeof input.design.expert === 'object' ? input.design.expert : {}
+    },
+    lighting: {
+      preset: allowedLighting.has(input.lighting.preset) ? input.lighting.preset : 'neutral',
+      expert: input.lighting.expert && typeof input.lighting.expert === 'object' ? input.lighting.expert : {}
+    },
+    output: {
+      frameWidth: Math.max(16, Math.min(1024, Number(input.output.frameWidth ?? 96))),
+      frameHeight: Math.max(16, Math.min(1024, Number(input.output.frameHeight ?? input.output.frameWidth ?? 96))),
+      frameCount: Math.max(2, Math.min(256, Number(input.output.frameCount ?? 128))),
+      startAngle: Math.max(-720, Math.min(720, Number(input.output.startAngle ?? -135))),
+      endAngle: Math.max(-720, Math.min(720, Number(input.output.endAngle ?? 135))),
+      layout: allowedLayouts.has(input.output.layout) ? input.output.layout : 'vertical',
+      supersample: Math.max(1, Math.min(4, Number(input.output.supersample ?? 2))),
+      scaleExports: Array.isArray(input.output.scaleExports) ? input.output.scaleExports : [1, 1.5, 2, 3]
+    }
+  };
+}
+
+function applyProjectToControls() {
+  $('name').value = project.name;
+  $('shape').value = project.design.shape;
+  $('material').value = project.design.material;
+  $('color').value = project.design.baseColor.slice(0, 7);
+  $('lighting').value = project.lighting.preset;
+  $('indicator').value = project.design.indicator.type;
+  $('indicatorColor').value = project.design.indicator.color.slice(0, 7);
+  $('length').value = String(project.design.indicator.length);
+  const size = Math.round(project.output.frameWidth);
+  $('size').value = ['64','96','128','192'].includes(String(size)) ? String(size) : '96';
+  $('frames').value = ['64','128','256'].includes(String(project.output.frameCount)) ? String(project.output.frameCount) : '128';
+  $('layout').value = project.output.layout;
+  $('supersample').value = String(project.output.supersample);
+  $('angle').min = String(Math.min(project.output.startAngle, project.output.endAngle));
+  $('angle').max = String(Math.max(project.output.startAngle, project.output.endAngle));
+  $('angle').value = String((project.output.startAngle + project.output.endAngle) * 0.5);
+}
 
 function syncAndRender() {
   project.name = $('name').value.trim() || '125A Knob';
@@ -216,7 +284,8 @@ function downloadBlob(blob, fileName) {
 }
 
 $('exportPng').addEventListener('click', async () => {
-  syncAndRender();
+  applyProjectToControls();
+syncAndRender();
   const button = $('exportPng');
   button.disabled = true;
   const oldText = button.textContent;
@@ -256,6 +325,29 @@ $('centerQa').addEventListener('click', async () => {
   } finally {
     button.disabled = false;
     preview.setPreviewAngle(Number($('angle').value));
+  }
+});
+
+$('load').addEventListener('click', () => {
+  $('loadFile').value = '';
+  $('loadFile').click();
+});
+
+$('loadFile').addEventListener('change', async () => {
+  const file = $('loadFile').files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const imported = normalizeImportedProject(JSON.parse(text));
+    Object.keys(project).forEach(key => delete project[key]);
+    Object.assign(project, imported);
+    applyProjectToControls();
+    syncAndRender();
+    $('status').textContent = `Projekt geladen · ${project.name}`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Projekt konnte nicht geladen werden';
+    alert(error.message || 'Projekt konnte nicht geladen werden.');
   }
 });
 
