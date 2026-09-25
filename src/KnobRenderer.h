@@ -32,6 +32,18 @@ struct KnobStyle {
     float indicatorOuterRadius {0.32f};
     float indicatorWidth {3.0f};
     bool drawCenterCap {false};
+
+    // Optional premium hardware details.
+    Color accentRing {255, 155, 126, 78};
+    Color scaleTick {255, 220, 210, 190};
+    Color knurlHighlight {100, 170, 176, 182};
+    Color knurlShadow {130, 0, 0, 0};
+    Color pointerTip {255, 242, 226, 187};
+    bool drawAccentRing {false};
+    bool drawScaleTicks {false};
+    bool drawKnurling {false};
+    bool drawPointerTip {false};
+    bool drawBrushedBezel {false};
 };
 
 struct RenderOptions {
