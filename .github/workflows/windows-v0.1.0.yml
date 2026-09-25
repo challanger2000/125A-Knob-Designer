@@ -24,7 +24,7 @@ jobs:
         run: cmake --build build --config Release --parallel
 
       - name: Render reference filmstrips
-        run: .\build\Release\125A_Knob_Designer.exe exports 128 128
+        run: .\build\Release\125A_Knob_Designer.exe exports
 
       - name: Verify exports
         shell: pwsh
