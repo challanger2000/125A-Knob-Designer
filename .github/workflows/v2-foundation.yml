@@ -1,0 +1,27 @@
+name: v0.2.0 foundation
+
+on:
+  push:
+    branches:
+      - v0.2.0
+    paths:
+      - 'designer-v2/**'
+      - 'docs/V0.2.0-ARCHITECTURE.md'
+      - 'THIRD_PARTY_LICENSES/**'
+      - '.github/workflows/v2-foundation.yml'
+  workflow_dispatch:
+
+jobs:
+  project-model-and-cli:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate sample project
+        shell: pwsh
+        run: node designer-v2/cli/125a-gui.js validate designer-v2/examples/knob-dark-metal.125agui.json
+      - name: Run CLI self-test
+        shell: pwsh
+        run: node designer-v2/cli/selftest.js

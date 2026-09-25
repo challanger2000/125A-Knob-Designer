@@ -1,0 +1,41 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "125A Dark Studio Knob",
+  "asset": { "type": "knob" },
+  "design": {
+    "shape": "studio",
+    "material": "metal-dark",
+    "baseColor": "#242A31FF",
+    "accentColor": "#657A8FFF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#E8EEF4FF",
+      "length": 66,
+      "width": 3
+    },
+    "expert": {
+      "layers": 2,
+      "bevel": 6,
+      "bodyHeight": 72
+    }
+  },
+  "lighting": {
+    "preset": "neutral",
+    "expert": {
+      "azimuth": 315,
+      "elevation": 58,
+      "aoStrength": 28
+    }
+  },
+  "output": {
+    "frameWidth": 96,
+    "frameHeight": 96,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [1, 1.5, 2, 3]
+  }
+}

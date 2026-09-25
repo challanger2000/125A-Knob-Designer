@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://125a.systems/schema/125agui.schema.json",
+  "title": "125A GUI Designer Project",
+  "type": "object",
+  "required": ["format", "version", "asset", "design", "lighting", "output"],
+  "properties": {
+    "format": { "const": "125A-GUI" },
+    "version": { "type": "integer", "minimum": 1 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "asset": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["knob"] }
+      },
+      "additionalProperties": false
+    },
+    "design": {
+      "type": "object",
+      "required": ["shape", "material", "baseColor", "indicator"],
+      "properties": {
+        "shape": { "enum": ["studio", "flat", "tapered", "cylindrical", "stepped"] },
+        "material": { "enum": ["plastic-black", "metal-dark", "aluminium", "steel", "brass", "rubber"] },
+        "baseColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+        "accentColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+        "indicator": {
+          "type": "object",
+          "required": ["enabled", "type", "color"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "type": { "enum": ["line", "dot", "notch", "groove"] },
+            "color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+            "length": { "type": "number", "minimum": 0, "maximum": 100 },
+            "width": { "type": "number", "minimum": 0.5, "maximum": 20 }
+          },
+          "additionalProperties": true
+        },
+        "expert": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "lighting": {
+      "type": "object",
+      "required": ["preset"],
+      "properties": {
+        "preset": { "enum": ["soft", "neutral", "contrast", "dramatic"] },
+        "expert": {
+          "type": "object",
+          "properties": {
+            "azimuth": { "type": "number", "minimum": 0, "maximum": 360 },
+            "elevation": { "type": "number", "minimum": 0, "maximum": 90 },
+            "aoStrength": { "type": "number", "minimum": 0, "maximum": 100 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "output": {
+      "type": "object",
+      "required": ["frameWidth", "frameHeight", "frameCount", "startAngle", "endAngle", "layout"],
+      "properties": {
+        "frameWidth": { "type": "integer", "minimum": 16, "maximum": 1024 },
+        "frameHeight": { "type": "integer", "minimum": 16, "maximum": 1024 },
+        "frameCount": { "type": "integer", "minimum": 2, "maximum": 256 },
+        "startAngle": { "type": "number", "minimum": -720, "maximum": 720 },
+        "endAngle": { "type": "number", "minimum": -720, "maximum": 720 },
+        "layout": { "enum": ["vertical", "horizontal", "grid"] },
+        "scaleExports": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0.25, "maximum": 4 },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
