@@ -82,9 +82,9 @@ void drawScaleTicks(
     const KnobStyle& style,
     float scale) {
 
-    Pen tickPen(gdipColor(style.scaleTick), std::max(1.0f, 1.35f * scale));
-    tickPen.SetStartCap(LineCapRound);
-    tickPen.SetEndCap(LineCapRound);
+    Pen tickPen(gdipColor(style.scaleTick), std::max(0.85f, 1.05f * scale));
+    tickPen.SetStartCap(LineCapFlat);
+    tickPen.SetEndCap(LineCapFlat);
 
     const int tickCount = std::max(3, style.tickCount);
     for (int i = 0; i < tickCount; ++i) {
@@ -309,14 +309,14 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
         isLarge ? 0.340f : (isSmall ? 0.355f : 0.350f),
         isSmall ? 0.095f : 0.080f,
         isLarge ? 0.300f : (isSmall ? 0.292f : 0.302f),
-        isLarge ? 3.8f : (isSmall ? 3.1f : 3.4f),
+        isLarge ? 3.45f : (isSmall ? 2.7f : 3.05f),
         true
     };
 
     s.accentRing = isLarge
-        ? Color{255, 166, 134, 82}
-        : Color{255, 151, 121, 74};
-    s.scaleTick = {255, 224, 214, 194};
+        ? Color{255, 186, 161, 116}
+        : Color{255, 172, 145, 101};
+    s.scaleTick = {245, 232, 222, 204};
     s.knurlHighlight = {82, 182, 188, 194};
     s.knurlShadow = {165, 0, 0, 0};
     s.pointerTip = {255, 243, 224, 183};
