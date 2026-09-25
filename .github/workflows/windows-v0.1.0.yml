@@ -46,17 +46,11 @@ jobs:
               throw "Invalid PNG signature: $Path"
             }
 
-            $width =
-              ($bytes[16] -shl 24) -bor
-              ($bytes[17] -shl 16) -bor
-              ($bytes[18] -shl 8) -bor
-              $bytes[19]
+            $width = [System.Net.IPAddress]::NetworkToHostOrder(
+              [BitConverter]::ToInt32($bytes, 16))
 
-            $height =
-              ($bytes[20] -shl 24) -bor
-              ($bytes[21] -shl 16) -bor
-              ($bytes[22] -shl 8) -bor
-              $bytes[23]
+            $height = [System.Net.IPAddress]::NetworkToHostOrder(
+              [BitConverter]::ToInt32($bytes, 20))
 
             return @($width, $height)
           }
