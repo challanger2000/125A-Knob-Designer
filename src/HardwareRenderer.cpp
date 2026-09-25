@@ -128,7 +128,7 @@ void drawPushButton(
 
     const bool pressed = state >= 2;
     const bool hover = state == 1;
-    const float yShift = pressed ? half * 0.035f : 0.0f;
+    const float yShift = pressed ? half * 0.055f : 0.0f;
     const float outer = half * 0.43f;
     const float face = half * (pressed ? 0.32f : 0.34f);
 
@@ -145,8 +145,8 @@ void drawPushButton(
     LinearGradientBrush faceBrush(
         PointF(cx, cy - face + yShift),
         PointF(cx, cy + face + yShift),
-        hover ? Gdiplus::Color(255, 74, 77, 80) : gc(s.faceTop),
-        pressed ? Gdiplus::Color(255, 9, 10, 12) : gc(s.faceBottom));
+        hover ? Gdiplus::Color(255, 92, 97, 101) : gc(s.faceTop),
+        pressed ? Gdiplus::Color(255, 7, 8, 10) : gc(s.faceBottom));
     g.FillEllipse(&faceBrush,
                   RectF(cx - face, cy - face + yShift, face * 2.0f, face * 2.0f));
 
@@ -154,7 +154,9 @@ void drawPushButton(
     g.DrawEllipse(&rim, RectF(cx - face, cy - face + yShift, face * 2.0f, face * 2.0f));
 
     if (!pressed) {
-        Pen hi(gc(s.highlight), std::max(0.8f, half * 0.025f));
+        Pen hi(
+            hover ? Gdiplus::Color(175, 255, 255, 255) : gc(s.highlight),
+            std::max(0.8f, half * (hover ? 0.036f : 0.025f)));
         g.DrawArc(&hi, RectF(cx - face * 0.86f, cy - face * 0.86f + yShift,
                             face * 1.72f, face * 1.72f), 205.0f, 105.0f);
     }
@@ -177,13 +179,38 @@ void drawToggle(
     const float baseB = snapHardEdge(cy + baseH, s.geometry);
     const RectF base(baseX, baseY, baseR - baseX, baseB - baseY);
 
-    LinearGradientBrush bezel(
-        PointF(cx, cy - baseH), PointF(cx, cy + baseH),
-        gc(s.metalTop), gc(s.metalBottom));
-    g.FillRectangle(&bezel, base);
+    if (!rocker) {
+        const float bezelR = half * 0.40f;
+        SolidBrush shadow(gc(s.shadow));
+        g.FillEllipse(
+            &shadow,
+            RectF(cx - bezelR, cy - bezelR + half * 0.055f,
+                  bezelR * 2.0f, bezelR * 2.0f));
 
-    Pen edge(Gdiplus::Color(210, 2, 3, 4), std::max(1.0f, half * 0.028f));
-    g.DrawRectangle(&edge, base);
+        LinearGradientBrush roundBezel(
+            PointF(cx, cy - bezelR), PointF(cx, cy + bezelR),
+            gc(s.metalTop), gc(s.metalBottom));
+        g.FillEllipse(
+            &roundBezel,
+            RectF(cx - bezelR, cy - bezelR, bezelR * 2.0f, bezelR * 2.0f));
+
+        Pen roundEdge(
+            Gdiplus::Color(220, 2, 3, 4),
+            std::max(1.0f, half * 0.028f));
+        g.DrawEllipse(
+            &roundEdge,
+            RectF(cx - bezelR, cy - bezelR, bezelR * 2.0f, bezelR * 2.0f));
+    } else {
+        LinearGradientBrush bezel(
+            PointF(cx, cy - baseH), PointF(cx, cy + baseH),
+            gc(s.metalTop), gc(s.metalBottom));
+        g.FillRectangle(&bezel, base);
+
+        Pen edge(
+            Gdiplus::Color(210, 2, 3, 4),
+            std::max(1.0f, half * 0.028f));
+        g.DrawRectangle(&edge, base);
+    }
 
     if (rocker) {
         const float inset = half * 0.09f;
@@ -195,8 +222,16 @@ void drawToggle(
             on ? gc(s.faceTop) : gc(s.faceBottom));
         g.FillRectangle(&fb, face);
 
-        Pen center(Gdiplus::Color(110, 0, 0, 0), std::max(1.0f, half * 0.02f));
+        Pen center(Gdiplus::Color(135, 0, 0, 0), std::max(1.0f, half * 0.022f));
         g.DrawLine(&center, PointF(face.X, cy), PointF(face.GetRight(), cy));
+
+        Pen bevel(
+            Gdiplus::Color(on ? 40 : 95, 255, 255, 255),
+            std::max(0.8f, half * 0.020f));
+        g.DrawLine(
+            &bevel,
+            PointF(face.X + inset, on ? face.GetBottom() - inset : face.Y + inset),
+            PointF(face.GetRight() - inset, on ? face.GetBottom() - inset : face.Y + inset));
 
         const float markR = half * 0.055f;
         SolidBrush lamp(gc(on ? s.accentOn : s.accentOff));
@@ -210,15 +245,16 @@ void drawToggle(
     g.FillEllipse(&pivot,
                   RectF(cx - pivotR, cy - pivotR, pivotR * 2.0f, pivotR * 2.0f));
 
-    const float dx = on ? half * 0.14f : -half * 0.14f;
-    const float dy = on ? -half * 0.24f : half * 0.24f;
-    Pen stem(Gdiplus::Color(255, 174, 177, 180), std::max(2.0f, half * 0.10f));
+    const float dx = on ? half * 0.15f : -half * 0.15f;
+    const float dy = on ? -half * 0.27f : half * 0.27f;
+    Pen stem(Gdiplus::Color(255, 194, 198, 201), std::max(2.0f, half * 0.085f));
     stem.SetStartCap(LineCapRound);
     stem.SetEndCap(LineCapRound);
     g.DrawLine(&stem, PointF(cx, cy), PointF(cx + dx, cy + dy));
 
-    SolidBrush tip(Gdiplus::Color(255, 56, 58, 60));
-    const float tr = half * 0.13f;
+    SolidBrush tip(on ? Gdiplus::Color(255, 68, 70, 72)
+                      : Gdiplus::Color(255, 48, 50, 52));
+    const float tr = half * 0.12f;
     g.FillEllipse(&tip, RectF(cx + dx - tr, cy + dy - tr, tr * 2.0f, tr * 2.0f));
 }
 
