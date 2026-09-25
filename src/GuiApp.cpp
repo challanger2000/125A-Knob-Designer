@@ -78,6 +78,13 @@ struct AppState {
     HWND knobPointerColor {};
     HWND knobReset {};
 
+    HWND fieldLabel1 {};
+    HWND fieldLabel2 {};
+    HWND fieldLabel3 {};
+    HWND fieldLabel4 {};
+    HWND fieldLabel5 {};
+    HWND editorHint {};
+
     std::unique_ptr<Gdiplus::Image> previewImage;
     fs::path previewPath;
 
@@ -93,6 +100,15 @@ struct AppState {
     KnobStyle editedKnob {};
     RenderOptions editedKnobOptions {};
     bool editedKnobValid {false};
+
+    HardwareAssetStyle editedHardware {};
+    bool editedHardwareValid {false};
+
+    FaderStyle editedFader {};
+    bool editedFaderValid {false};
+
+    MeterStyle editedMeter {};
+    bool editedMeterValid {false};
 };
 
 AppState gApp;
@@ -297,26 +313,253 @@ void syncKnobEditorFromPreset() {
         gApp.editedKnob.drawBrushedBezel ? BST_CHECKED : BST_UNCHECKED, 0);
 }
 
-void showKnobEditor(bool visible) {
-    const int cmd = visible ? SW_SHOW : SW_HIDE;
-    for (HWND h : {
+void showControl(HWND h, bool visible) {
+    if (h) {
+        ShowWindow(h, visible ? SW_SHOW : SW_HIDE);
+    }
+}
+
+void setButtonText(HWND h, const wchar_t* text) {
+    if (h) {
+        SetWindowTextW(h, text);
+    }
+}
+
+void syncHardwareEditorFromPreset() {
+    const int preset = selectedPreset();
+    if (preset < 0 || preset >= static_cast<int>(gApp.hardwareStyles.size())) {
+        gApp.editedHardwareValid = false;
+        return;
+    }
+
+    gApp.editedHardware = gApp.hardwareStyles[preset];
+    gApp.editedHardware.name =
+        gApp.hardwareStyles[preset].name + L" Custom";
+    gApp.editedHardwareValid = true;
+
+    setEditInt(gApp.knobSize, gApp.editedHardware.preferredCellSize);
+    setEditInt(gApp.knobFrames, gApp.editedHardware.stateCount);
+}
+
+void syncFaderEditorFromPreset() {
+    const int preset = selectedPreset();
+    if (preset < 0 || preset >= static_cast<int>(gApp.faderStyles.size())) {
+        gApp.editedFaderValid = false;
+        return;
+    }
+
+    gApp.editedFader = gApp.faderStyles[preset];
+    gApp.editedFader.name =
+        gApp.faderStyles[preset].name + L" Custom";
+    gApp.editedFaderValid = true;
+
+    setEditInt(gApp.knobSize, gApp.editedFader.preferredWidth);
+    setEditInt(gApp.knobFrames, gApp.editedFader.preferredHeight);
+    setEditInt(gApp.knobStartAngle, gApp.editedFader.frameCount);
+}
+
+void syncMeterEditorFromPreset() {
+    const int preset = selectedPreset();
+    if (preset < 0 || preset >= static_cast<int>(gApp.meterStyles.size())) {
+        gApp.editedMeterValid = false;
+        return;
+    }
+
+    gApp.editedMeter = gApp.meterStyles[preset];
+    gApp.editedMeter.name =
+        gApp.meterStyles[preset].name + L" Custom";
+    gApp.editedMeterValid = true;
+
+    setEditInt(gApp.knobSize, gApp.editedMeter.preferredWidth);
+    setEditInt(gApp.knobFrames, gApp.editedMeter.preferredHeight);
+    setEditInt(gApp.knobStartAngle, gApp.editedMeter.frameCount);
+    setEditFloat(gApp.knobEndAngle, gApp.editedMeter.startAngleDeg);
+    setEditFloat(gApp.knobTicks, gApp.editedMeter.endAngleDeg);
+}
+
+void applyHardwareEditor() {
+    if (!gApp.editedHardwareValid) {
+        return;
+    }
+
+    gApp.editedHardware.preferredCellSize =
+        readInt(
+            gApp.knobSize,
+            gApp.editedHardware.preferredCellSize,
+            16,
+            512);
+
+    gApp.editedHardware.stateCount =
+        readInt(
+            gApp.knobFrames,
+            gApp.editedHardware.stateCount,
+            2,
+            16);
+}
+
+void applyFaderEditor() {
+    if (!gApp.editedFaderValid) {
+        return;
+    }
+
+    gApp.editedFader.preferredWidth =
+        readInt(
+            gApp.knobSize,
+            gApp.editedFader.preferredWidth,
+            24,
+            512);
+
+    gApp.editedFader.preferredHeight =
+        readInt(
+            gApp.knobFrames,
+            gApp.editedFader.preferredHeight,
+            48,
+            1024);
+
+    gApp.editedFader.frameCount =
+        readInt(
+            gApp.knobStartAngle,
+            gApp.editedFader.frameCount,
+            2,
+            256);
+}
+
+void applyMeterEditor() {
+    if (!gApp.editedMeterValid) {
+        return;
+    }
+
+    gApp.editedMeter.preferredWidth =
+        readInt(
+            gApp.knobSize,
+            gApp.editedMeter.preferredWidth,
+            48,
+            1024);
+
+    gApp.editedMeter.preferredHeight =
+        readInt(
+            gApp.knobFrames,
+            gApp.editedMeter.preferredHeight,
+            32,
+            768);
+
+    gApp.editedMeter.frameCount =
+        readInt(
+            gApp.knobStartAngle,
+            gApp.editedMeter.frameCount,
+            2,
+            256);
+
+    gApp.editedMeter.startAngleDeg =
+        readFloat(
+            gApp.knobEndAngle,
+            gApp.editedMeter.startAngleDeg,
+            -180.0f,
+            180.0f);
+
+    gApp.editedMeter.endAngleDeg =
+        readFloat(
+            gApp.knobTicks,
+            gApp.editedMeter.endAngleDeg,
+            -180.0f,
+            180.0f);
+}
+
+void configureEditorForCategory() {
+    const int category = selectedCategory();
+    const bool knob = category == 0;
+    const bool hardware = category == 1;
+    const bool fader = category == 2;
+    const bool meter = category == 3;
+
+    showControl(gApp.knobPanel, true);
+    setButtonText(
         gApp.knobPanel,
-        gApp.knobSize,
-        gApp.knobFrames,
-        gApp.knobStartAngle,
-        gApp.knobEndAngle,
-        gApp.knobTicks,
-        gApp.knobAccentToggle,
-        gApp.knobTicksToggle,
-        gApp.knobKnurlToggle,
-        gApp.knobPointerTipToggle,
-        gApp.knobBrushedToggle,
-        gApp.knobBodyColor,
-        gApp.knobBezelColor,
-        gApp.knobAccentColor,
-        gApp.knobPointerColor,
-        gApp.knobReset}) {
-        ShowWindow(h, cmd);
+        knob ? L"Eigener Knob" :
+        hardware ? L"Eigene Hardware" :
+        fader ? L"Eigener Fader" :
+        L"Eigenes VU / Meter");
+
+    showControl(gApp.fieldLabel1, true);
+    showControl(gApp.fieldLabel2, true);
+    showControl(gApp.fieldLabel3, knob || fader || meter);
+    showControl(gApp.fieldLabel4, knob || meter);
+    showControl(gApp.fieldLabel5, knob || meter);
+
+    showControl(gApp.knobSize, true);
+    showControl(gApp.knobFrames, true);
+    showControl(gApp.knobStartAngle, knob || fader || meter);
+    showControl(gApp.knobEndAngle, knob || meter);
+    showControl(gApp.knobTicks, knob || meter);
+
+    showControl(gApp.knobAccentToggle, knob);
+    showControl(gApp.knobTicksToggle, knob);
+    showControl(gApp.knobKnurlToggle, knob);
+    showControl(gApp.knobPointerTipToggle, knob);
+    showControl(gApp.knobBrushedToggle, knob);
+
+    showControl(gApp.knobBodyColor, true);
+    showControl(gApp.knobBezelColor, true);
+    showControl(gApp.knobAccentColor, true);
+    showControl(gApp.knobPointerColor, true);
+    showControl(gApp.knobReset, true);
+    showControl(gApp.editorHint, true);
+
+    if (knob) {
+        SetWindowTextW(gApp.fieldLabel1, L"Größe px");
+        SetWindowTextW(gApp.fieldLabel2, L"Frames");
+        SetWindowTextW(gApp.fieldLabel3, L"Startwinkel");
+        SetWindowTextW(gApp.fieldLabel4, L"Endwinkel");
+        SetWindowTextW(gApp.fieldLabel5, L"Skalenstriche");
+        setButtonText(gApp.knobBodyColor, L"Körperfarbe...");
+        setButtonText(gApp.knobBezelColor, L"Bezelfarbe...");
+        setButtonText(gApp.knobAccentColor, L"Akzentfarbe...");
+        setButtonText(gApp.knobPointerColor, L"Pointerfarbe...");
+        SetWindowTextW(
+            gApp.editorHint,
+            L"Preset wählen → Werte ändern → Vorschau → Export.\n"
+            L"Das Originalpreset bleibt unverändert.");
+        syncKnobEditorFromPreset();
+    } else if (hardware) {
+        SetWindowTextW(gApp.fieldLabel1, L"Größe px");
+        SetWindowTextW(gApp.fieldLabel2, L"Zustände");
+        setButtonText(gApp.knobBodyColor, L"Face-Farbe...");
+        setButtonText(gApp.knobBezelColor, L"Metallfarbe...");
+        setButtonText(gApp.knobAccentColor, L"ON / Akzent...");
+        setButtonText(gApp.knobPointerColor, L"OFF / Dunkel...");
+        SetWindowTextW(
+            gApp.editorHint,
+            L"LED, Button oder Switch als Ausgangspunkt wählen.\n"
+            L"Größe, Zustände und Materialfarben sind editierbar.");
+        syncHardwareEditorFromPreset();
+    } else if (fader) {
+        SetWindowTextW(gApp.fieldLabel1, L"Breite px");
+        SetWindowTextW(gApp.fieldLabel2, L"Höhe px");
+        SetWindowTextW(gApp.fieldLabel3, L"Frames");
+        setButtonText(gApp.knobBodyColor, L"Cap-Farbe...");
+        setButtonText(gApp.knobBezelColor, L"Rail-Farbe...");
+        setButtonText(gApp.knobAccentColor, L"Pointerfarbe...");
+        setButtonText(gApp.knobPointerColor, L"Tick-Farbe...");
+        SetWindowTextW(
+            gApp.editorHint,
+            L"Fader-Geometrie und Materialfarben editieren.\n"
+            L"Der Export bleibt VSTGUI-filmstrip-tauglich.");
+        syncFaderEditorFromPreset();
+    } else if (meter) {
+        SetWindowTextW(gApp.fieldLabel1, L"Breite px");
+        SetWindowTextW(gApp.fieldLabel2, L"Höhe px");
+        SetWindowTextW(gApp.fieldLabel3, L"Frames");
+        SetWindowTextW(gApp.fieldLabel4, L"Startwinkel");
+        SetWindowTextW(gApp.fieldLabel5, L"Endwinkel");
+        setButtonText(gApp.knobBodyColor, L"Face-Farbe...");
+        setButtonText(gApp.knobBezelColor, L"Frame-Farbe...");
+        setButtonText(gApp.knobAccentColor, L"Nadelfarbe...");
+        setButtonText(gApp.knobPointerColor, L"Red-Zone...");
+        SetWindowTextW(
+            gApp.editorHint,
+            L"Meter-Abmessungen, Winkel und Farben editieren.\n"
+            L"Die Nadel wird als deterministischer Filmstrip erzeugt.");
+        syncMeterEditorFromPreset();
     }
 }
 
@@ -361,11 +604,7 @@ void populatePresets() {
 
     SendMessageW(gApp.preset, CB_SETCURSEL, 0, 0);
 
-    const bool knobMode = category == 0;
-    showKnobEditor(knobMode);
-    if (knobMode) {
-        syncKnobEditorFromPreset();
-    }
+    configureEditorForCategory();
 }
 
 bool renderSelectedTo(
@@ -400,75 +639,89 @@ bool renderSelectedTo(
     }
 
     if (category == 1) {
-        if (preset >= static_cast<int>(gApp.hardwareStyles.size())) {
+        if (preset >= static_cast<int>(gApp.hardwareStyles.size()) ||
+            !gApp.editedHardwareValid) {
             return false;
         }
 
-        const auto& style = gApp.hardwareStyles[preset];
+        applyHardwareEditor();
+
         const int cellSize = std::max(
             16,
             static_cast<int>(std::lround(
-                static_cast<double>(style.preferredCellSize) *
+                static_cast<double>(gApp.editedHardware.preferredCellSize) *
                 static_cast<double>(scaleFactor))));
 
         gApp.cellWidth = cellSize;
         gApp.cellHeight = cellSize;
-        gApp.frameCount = style.stateCount;
+        gApp.frameCount = gApp.editedHardware.stateCount;
 
         HardwareRenderer renderer;
         return renderer.renderVerticalFilmstrip(
-            style, cellSize, outputPath.wstring());
+            gApp.editedHardware, cellSize, outputPath.wstring());
     }
 
     if (category == 2) {
-        if (preset >= static_cast<int>(gApp.faderStyles.size())) {
+        if (preset >= static_cast<int>(gApp.faderStyles.size()) ||
+            !gApp.editedFaderValid) {
             return false;
         }
 
-        const auto& style = gApp.faderStyles[preset];
+        applyFaderEditor();
+
         const int width = std::max(
             16,
             static_cast<int>(std::lround(
-                static_cast<double>(style.preferredWidth) *
+                static_cast<double>(gApp.editedFader.preferredWidth) *
                 static_cast<double>(scaleFactor))));
         const int height = std::max(
             32,
             static_cast<int>(std::lround(
-                static_cast<double>(style.preferredHeight) *
+                static_cast<double>(gApp.editedFader.preferredHeight) *
                 static_cast<double>(scaleFactor))));
 
         gApp.cellWidth = width;
         gApp.cellHeight = height;
-        gApp.frameCount = style.frameCount;
+        gApp.frameCount = gApp.editedFader.frameCount;
 
         FaderRenderer renderer;
         return renderer.renderVerticalFilmstrip(
-            style, width, height, style.frameCount, outputPath.wstring());
+            gApp.editedFader,
+            width,
+            height,
+            gApp.editedFader.frameCount,
+            outputPath.wstring());
     }
 
-    if (preset >= static_cast<int>(gApp.meterStyles.size())) {
+    if (preset >= static_cast<int>(gApp.meterStyles.size()) ||
+        !gApp.editedMeterValid) {
         return false;
     }
 
-    const auto& style = gApp.meterStyles[preset];
+    applyMeterEditor();
+
     const int width = std::max(
         32,
         static_cast<int>(std::lround(
-            static_cast<double>(style.preferredWidth) *
+            static_cast<double>(gApp.editedMeter.preferredWidth) *
             static_cast<double>(scaleFactor))));
     const int height = std::max(
         24,
         static_cast<int>(std::lround(
-            static_cast<double>(style.preferredHeight) *
+            static_cast<double>(gApp.editedMeter.preferredHeight) *
             static_cast<double>(scaleFactor))));
 
     gApp.cellWidth = width;
     gApp.cellHeight = height;
-    gApp.frameCount = style.frameCount;
+    gApp.frameCount = gApp.editedMeter.frameCount;
 
     MeterRenderer renderer;
     return renderer.renderVerticalFilmstrip(
-        style, width, height, style.frameCount, outputPath.wstring());
+        gApp.editedMeter,
+        width,
+        height,
+        gApp.editedMeter.frameCount,
+        outputPath.wstring());
 }
 
 std::wstring selectedStyleName() {
@@ -478,17 +731,14 @@ std::wstring selectedStyleName() {
     if (category == 0 && gApp.editedKnobValid) {
         return gApp.editedKnob.name;
     }
-    if (category == 1 &&
-        preset < static_cast<int>(gApp.hardwareStyles.size())) {
-        return gApp.hardwareStyles[preset].name;
+    if (category == 1 && gApp.editedHardwareValid) {
+        return gApp.editedHardware.name;
     }
-    if (category == 2 &&
-        preset < static_cast<int>(gApp.faderStyles.size())) {
-        return gApp.faderStyles[preset].name;
+    if (category == 2 && gApp.editedFaderValid) {
+        return gApp.editedFader.name;
     }
-    if (category == 3 &&
-        preset < static_cast<int>(gApp.meterStyles.size())) {
-        return gApp.meterStyles[preset].name;
+    if (category == 3 && gApp.editedMeterValid) {
+        return gApp.editedMeter.name;
     }
     return L"Asset";
 }
@@ -804,27 +1054,27 @@ void createControls(HWND window) {
         L"Eigener Knob",
         322, 28, 260, 22);
 
-    makeStatic(L"Größe px", 322, 58, 90, 20);
+    gApp.fieldLabel1 = makeStatic(L"Größe px", 322, 58, 90, 20);
     gApp.knobSize = makeEdit(
         window, reinterpret_cast<HMENU>(IdSize),
         420, 54, 72, 24, font);
 
-    makeStatic(L"Frames", 322, 88, 90, 20);
+    gApp.fieldLabel2 = makeStatic(L"Frames", 322, 88, 90, 20);
     gApp.knobFrames = makeEdit(
         window, reinterpret_cast<HMENU>(IdFrames),
         420, 84, 72, 24, font);
 
-    makeStatic(L"Startwinkel", 322, 118, 90, 20);
+    gApp.fieldLabel3 = makeStatic(L"Startwinkel", 322, 118, 90, 20);
     gApp.knobStartAngle = makeEdit(
         window, reinterpret_cast<HMENU>(IdStartAngle),
         420, 114, 72, 24, font);
 
-    makeStatic(L"Endwinkel", 322, 148, 90, 20);
+    gApp.fieldLabel4 = makeStatic(L"Endwinkel", 322, 148, 90, 20);
     gApp.knobEndAngle = makeEdit(
         window, reinterpret_cast<HMENU>(IdEndAngle),
         420, 144, 72, 24, font);
 
-    makeStatic(L"Skalenstriche", 322, 178, 90, 20);
+    gApp.fieldLabel5 = makeStatic(L"Skalenstriche", 322, 178, 90, 20);
     gApp.knobTicks = makeEdit(
         window, reinterpret_cast<HMENU>(IdTicks),
         420, 174, 72, 24, font);
@@ -889,9 +1139,9 @@ void createControls(HWND window) {
         322, 394, 258, 32,
         BS_PUSHBUTTON, font);
 
-    makeStatic(
+    gApp.editorHint = makeStatic(
         L"Preset wählen → Werte ändern → Vorschau → Export.\n"
-        L"Die Änderungen betreffen nur deinen Export, nicht das Originalpreset.",
+        L"Das Originalpreset bleibt unverändert.",
         322, 448, 258, 62);
 
     SetPropW(window, L"125A_UI_FONT", font);
@@ -959,9 +1209,7 @@ LRESULT CALLBACK windowProc(
             }
 
             if (id == IdPreset && code == CBN_SELCHANGE) {
-                if (selectedCategory() == 0) {
-                    syncKnobEditorFromPreset();
-                }
+                configureEditorForCategory();
                 renderPreview();
                 return 0;
             }
@@ -972,38 +1220,118 @@ LRESULT CALLBACK windowProc(
             }
 
             if (id == IdResetKnob) {
-                syncKnobEditorFromPreset();
+                configureEditorForCategory();
                 renderPreview();
                 return 0;
             }
 
-            if (id == IdBodyColor && gApp.editedKnobValid) {
-                if (chooseColor(hwnd, gApp.editedKnob.bodyTop)) {
-                    gApp.editedKnob.bodyBottom =
-                        darker(gApp.editedKnob.bodyTop, 0.35f);
+            if (id == IdBodyColor) {
+                const int category = selectedCategory();
+                bool changed = false;
+
+                if (category == 0 && gApp.editedKnobValid) {
+                    changed = chooseColor(hwnd, gApp.editedKnob.bodyTop);
+                    if (changed) {
+                        gApp.editedKnob.bodyBottom =
+                            darker(gApp.editedKnob.bodyTop, 0.35f);
+                    }
+                } else if (category == 1 && gApp.editedHardwareValid) {
+                    changed = chooseColor(hwnd, gApp.editedHardware.faceTop);
+                    if (changed) {
+                        gApp.editedHardware.faceBottom =
+                            darker(gApp.editedHardware.faceTop, 0.32f);
+                    }
+                } else if (category == 2 && gApp.editedFaderValid) {
+                    changed = chooseColor(hwnd, gApp.editedFader.capTop);
+                    if (changed) {
+                        gApp.editedFader.capBottom =
+                            darker(gApp.editedFader.capTop, 0.28f);
+                    }
+                } else if (category == 3 && gApp.editedMeterValid) {
+                    changed = chooseColor(hwnd, gApp.editedMeter.faceTop);
+                    if (changed) {
+                        gApp.editedMeter.faceBottom =
+                            darker(gApp.editedMeter.faceTop, 0.78f);
+                    }
+                }
+
+                if (changed) {
                     renderPreview();
                 }
                 return 0;
             }
 
-            if (id == IdBezelColor && gApp.editedKnobValid) {
-                if (chooseColor(hwnd, gApp.editedKnob.bezelOuter)) {
-                    gApp.editedKnob.bezelInner =
-                        darker(gApp.editedKnob.bezelOuter, 0.32f);
+            if (id == IdBezelColor) {
+                const int category = selectedCategory();
+                bool changed = false;
+
+                if (category == 0 && gApp.editedKnobValid) {
+                    changed = chooseColor(hwnd, gApp.editedKnob.bezelOuter);
+                    if (changed) {
+                        gApp.editedKnob.bezelInner =
+                            darker(gApp.editedKnob.bezelOuter, 0.32f);
+                    }
+                } else if (category == 1 && gApp.editedHardwareValid) {
+                    changed = chooseColor(hwnd, gApp.editedHardware.metalTop);
+                    if (changed) {
+                        gApp.editedHardware.metalBottom =
+                            darker(gApp.editedHardware.metalTop, 0.30f);
+                    }
+                } else if (category == 2 && gApp.editedFaderValid) {
+                    changed = chooseColor(hwnd, gApp.editedFader.railInner);
+                    if (changed) {
+                        gApp.editedFader.railOuter =
+                            darker(gApp.editedFader.railInner, 0.28f);
+                    }
+                } else if (category == 3 && gApp.editedMeterValid) {
+                    changed = chooseColor(hwnd, gApp.editedMeter.frameTop);
+                    if (changed) {
+                        gApp.editedMeter.frameBottom =
+                            darker(gApp.editedMeter.frameTop, 0.28f);
+                    }
+                }
+
+                if (changed) {
                     renderPreview();
                 }
                 return 0;
             }
 
-            if (id == IdAccentColor && gApp.editedKnobValid) {
-                if (chooseColor(hwnd, gApp.editedKnob.accentRing)) {
+            if (id == IdAccentColor) {
+                const int category = selectedCategory();
+                bool changed = false;
+
+                if (category == 0 && gApp.editedKnobValid) {
+                    changed = chooseColor(hwnd, gApp.editedKnob.accentRing);
+                } else if (category == 1 && gApp.editedHardwareValid) {
+                    changed = chooseColor(hwnd, gApp.editedHardware.accentOn);
+                } else if (category == 2 && gApp.editedFaderValid) {
+                    changed = chooseColor(hwnd, gApp.editedFader.indicator);
+                } else if (category == 3 && gApp.editedMeterValid) {
+                    changed = chooseColor(hwnd, gApp.editedMeter.needle);
+                }
+
+                if (changed) {
                     renderPreview();
                 }
                 return 0;
             }
 
-            if (id == IdPointerColor && gApp.editedKnobValid) {
-                if (chooseColor(hwnd, gApp.editedKnob.indicator)) {
+            if (id == IdPointerColor) {
+                const int category = selectedCategory();
+                bool changed = false;
+
+                if (category == 0 && gApp.editedKnobValid) {
+                    changed = chooseColor(hwnd, gApp.editedKnob.indicator);
+                } else if (category == 1 && gApp.editedHardwareValid) {
+                    changed = chooseColor(hwnd, gApp.editedHardware.accentOff);
+                } else if (category == 2 && gApp.editedFaderValid) {
+                    changed = chooseColor(hwnd, gApp.editedFader.tick);
+                } else if (category == 3 && gApp.editedMeterValid) {
+                    changed = chooseColor(hwnd, gApp.editedMeter.redZone);
+                }
+
+                if (changed) {
                     renderPreview();
                 }
                 return 0;
