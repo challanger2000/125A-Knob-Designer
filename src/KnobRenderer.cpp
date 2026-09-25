@@ -288,32 +288,32 @@ private:
 enum class MixEngineKnobSize { Small, Medium, Large };
 
 KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
-    const bool small = variant == MixEngineKnobSize::Small;
-    const bool large = variant == MixEngineKnobSize::Large;
+    const bool isSmall = variant == MixEngineKnobSize::Small;
+    const bool isLarge = variant == MixEngineKnobSize::Large;
 
     KnobStyle s {
-        small ? L"MixEngine Analog S" :
-        (large ? L"MixEngine Analog L" : L"MixEngine Analog M"),
-        {static_cast<std::uint8_t>(large ? 125 : 110), 0, 0, 0},
+        isSmall ? L"MixEngine Analog S" :
+        (isLarge ? L"MixEngine Analog L" : L"MixEngine Analog M"),
+        {static_cast<std::uint8_t>(isLarge ? 125 : 110), 0, 0, 0},
         {255, 49, 54, 60},
         {255, 13, 16, 20},
         {255, 49, 51, 53},
         {255, 10, 12, 15},
         {255, 4, 5, 7},
-        {static_cast<std::uint8_t>(large ? 120 : 100), 226, 232, 238},
+        {static_cast<std::uint8_t>(isLarge ? 120 : 100), 226, 232, 238},
         {255, 224, 54, 43},
         {255, 27, 29, 31},
-        large ? 5.5f : (small ? 3.0f : 4.5f),
-        large ? 1.035f : 1.025f,
-        large ? 0.475f : (small ? 0.430f : 0.458f),
-        large ? 0.340f : (small ? 0.355f : 0.350f),
-        small ? 0.095f : 0.080f,
-        large ? 0.300f : (small ? 0.292f : 0.302f),
-        large ? 3.8f : (small ? 3.1f : 3.4f),
+        isLarge ? 5.5f : (isSmall ? 3.0f : 4.5f),
+        isLarge ? 1.035f : 1.025f,
+        isLarge ? 0.475f : (isSmall ? 0.430f : 0.458f),
+        isLarge ? 0.340f : (isSmall ? 0.355f : 0.350f),
+        isSmall ? 0.095f : 0.080f,
+        isLarge ? 0.300f : (isSmall ? 0.292f : 0.302f),
+        isLarge ? 3.8f : (isSmall ? 3.1f : 3.4f),
         true
     };
 
-    s.accentRing = large
+    s.accentRing = isLarge
         ? Color{255, 166, 134, 82}
         : Color{255, 151, 121, 74};
     s.scaleTick = {255, 224, 214, 194};
@@ -322,10 +322,10 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
     s.pointerTip = {255, 243, 224, 183};
     s.drawAccentRing = true;
     // Small utility controls stay cleaner at tiny display sizes.
-    s.drawScaleTicks = !small;
-    s.drawKnurling = !small;
+    s.drawScaleTicks = !isSmall;
+    s.drawKnurling = !isSmall;
     s.drawPointerTip = true;
-    s.drawBrushedBezel = !small;
+    s.drawBrushedBezel = !isSmall;
     return s;
 }
 
