@@ -46,6 +46,84 @@ RectF centeredCircle(float cx, float cy, float radius) {
     return RectF(cx - radius, cy - radius, radius * 2.0f, radius * 2.0f);
 }
 
+PointF polar(float cx, float cy, float radius, float angleDeg) {
+    const float rad = (angleDeg - 90.0f) * kPi / 180.0f;
+    return PointF(cx + std::cos(rad) * radius, cy + std::sin(rad) * radius);
+}
+
+void drawBrushedRing(
+    Graphics& g,
+    float cx,
+    float cy,
+    float outerR,
+    const Color& light,
+    const Color& dark,
+    float scale) {
+
+    for (int i = 0; i < 14; ++i) {
+        const float inset = (2.0f + static_cast<float>(i) * 0.62f) * scale;
+        const float r = outerR - inset;
+        if (r <= 1.0f) {
+            break;
+        }
+
+        const auto& c = (i % 2 == 0) ? light : dark;
+        Pen pen(gdipColor(c), std::max(0.55f, 0.55f * scale));
+        g.DrawArc(&pen, centeredCircle(cx, cy, r), 202.0f, 126.0f);
+        g.DrawArc(&pen, centeredCircle(cx, cy, r), 22.0f, 72.0f);
+    }
+}
+
+void drawScaleTicks(
+    Graphics& g,
+    float cx,
+    float cy,
+    float half,
+    const KnobStyle& style,
+    float scale) {
+
+    Pen tickPen(gdipColor(style.scaleTick), std::max(1.0f, 1.35f * scale));
+    tickPen.SetStartCap(LineCapRound);
+    tickPen.SetEndCap(LineCapRound);
+
+    constexpr int tickCount = 13;
+    for (int i = 0; i < tickCount; ++i) {
+        const float t = static_cast<float>(i) / static_cast<float>(tickCount - 1);
+        const float angle = -135.0f + t * 270.0f;
+        const bool major = (i == 0 || i == tickCount / 2 || i == tickCount - 1);
+        const float rOuter = half * (style.bezelRadius - 0.012f);
+        const float rInner = rOuter - half * (major ? 0.060f : 0.038f);
+        g.DrawLine(
+            &tickPen,
+            polar(cx, cy, rInner, angle),
+            polar(cx, cy, rOuter, angle));
+    }
+}
+
+void drawKnurling(
+    Graphics& g,
+    float cx,
+    float cy,
+    float half,
+    const KnobStyle& style,
+    float scale) {
+
+    const float rOuter = half * style.bodyRadius * 1.035f;
+    const float rInner = rOuter - std::max(2.0f * scale, half * 0.030f);
+
+    for (int i = 0; i < 48; ++i) {
+        const float angle = static_cast<float>(i) * 360.0f / 48.0f;
+        const bool lit = (i % 2 == 0);
+        Pen pen(
+            gdipColor(lit ? style.knurlHighlight : style.knurlShadow),
+            std::max(0.8f, 1.0f * scale));
+        g.DrawLine(
+            &pen,
+            polar(cx, cy, rInner, angle),
+            polar(cx, cy, rOuter, angle));
+    }
+}
+
 void drawFrame(
     Graphics& g,
     const KnobStyle& style,
@@ -55,6 +133,7 @@ void drawFrame(
     float angleDeg) {
 
     const float size = static_cast<float>(cellSize);
+    const float scale = size / 128.0f;
     const float cx = static_cast<float>(xOffset) + size * 0.5f;
     const float cy = static_cast<float>(yOffset) + size * 0.5f;
     const float half = size * 0.5f;
@@ -63,12 +142,14 @@ void drawFrame(
     g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
     g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
 
+    // Cast shadow.
     {
         const float r = half * style.bezelRadius * style.shadowScale;
         SolidBrush brush(gdipColor(style.shadow));
-        g.FillEllipse(&brush, centeredCircle(cx, cy + style.shadowOffsetY, r));
+        g.FillEllipse(&brush, centeredCircle(cx, cy + style.shadowOffsetY * scale, r));
     }
 
+    // Outer bezel.
     {
         const float r = half * style.bezelRadius;
         LinearGradientBrush brush(
@@ -78,10 +159,44 @@ void drawFrame(
             gdipColor(style.bezelInner));
         g.FillEllipse(&brush, centeredCircle(cx, cy, r));
 
-        Pen edgePen(gdipColor(style.edge), std::max(1.0f, size / 128.0f));
+        Pen edgePen(gdipColor(style.edge), std::max(1.0f, scale));
         g.DrawEllipse(&edgePen, centeredCircle(cx, cy, r));
+
+        if (style.drawBrushedBezel) {
+            drawBrushedRing(
+                g, cx, cy, r,
+                {44, 235, 238, 240},
+                {36, 0, 0, 0},
+                scale);
+        }
     }
 
+    if (style.drawScaleTicks) {
+        drawScaleTicks(g, cx, cy, half, style, scale);
+    }
+
+    // Recess between bezel and knob body.
+    {
+        const float recessR = half * (style.bodyRadius + 0.050f);
+        Pen recessDark(Gdiplus::Color(190, 0, 0, 0), std::max(2.0f, 3.0f * scale));
+        g.DrawEllipse(&recessDark, centeredCircle(cx, cy, recessR));
+
+        Pen recessHi(Gdiplus::Color(58, 230, 235, 240), std::max(0.75f, scale));
+        g.DrawArc(&recessHi, centeredCircle(cx, cy, recessR - 1.5f * scale), 198.0f, 128.0f);
+    }
+
+    // Warm metal accent ring.
+    if (style.drawAccentRing) {
+        const float r = half * (style.bodyRadius + 0.030f);
+        Pen accentDark(Gdiplus::Color(210, 54, 43, 29), std::max(3.0f, 5.8f * scale));
+        g.DrawEllipse(&accentDark, centeredCircle(cx, cy, r));
+
+        Pen accent(gdipColor(style.accentRing), std::max(1.0f, 2.4f * scale));
+        g.DrawArc(&accent, centeredCircle(cx, cy, r), 205.0f, 118.0f);
+        g.DrawArc(&accent, centeredCircle(cx, cy, r), 328.0f, 76.0f);
+    }
+
+    // Knob body.
     {
         const float r = half * style.bodyRadius;
         LinearGradientBrush brush(
@@ -91,35 +206,61 @@ void drawFrame(
             gdipColor(style.bodyBottom));
         g.FillEllipse(&brush, centeredCircle(cx, cy, r));
 
+        if (style.drawKnurling) {
+            drawKnurling(g, cx, cy, half, style, scale);
+        }
+
         Pen hiPen(gdipColor(style.highlight), std::max(1.0f, size * 0.018f));
         const RectF hiRect = centeredCircle(cx, cy, r * 0.90f);
         g.DrawArc(&hiPen, hiRect, 205.0f, 112.0f);
+
+        // Inner depth rings make the face look machined instead of flat.
+        Pen innerDark(Gdiplus::Color(150, 0, 0, 0), std::max(1.0f, 1.4f * scale));
+        g.DrawEllipse(&innerDark, centeredCircle(cx, cy, r * 0.86f));
+
+        Pen innerHi(Gdiplus::Color(45, 255, 255, 255), std::max(0.6f, 0.8f * scale));
+        g.DrawArc(&innerHi, centeredCircle(cx, cy, r * 0.82f), 205.0f, 110.0f);
     }
 
+    // Indicator.
+    {
+        const float r1 = half * style.indicatorInnerRadius;
+        const float r2 = half * style.indicatorOuterRadius;
+        const PointF p1 = polar(cx, cy, r1, angleDeg);
+        const PointF p2 = polar(cx, cy, r2, angleDeg);
+
+        // Small dark under-stroke gives the red marker real depth.
+        Pen underPen(Gdiplus::Color(190, 0, 0, 0),
+                     std::max(2.0f, (style.indicatorWidth + 2.0f) * scale));
+        underPen.SetStartCap(LineCapRound);
+        underPen.SetEndCap(LineCapRound);
+        g.DrawLine(&underPen, p1, p2);
+
+        Pen indicatorPen(
+            gdipColor(style.indicator),
+            std::max(1.0f, style.indicatorWidth * scale));
+        indicatorPen.SetStartCap(LineCapRound);
+        indicatorPen.SetEndCap(LineCapRound);
+        g.DrawLine(&indicatorPen, p1, p2);
+
+        if (style.drawPointerTip) {
+            const PointF tip = polar(cx, cy, r2, angleDeg);
+            const float tipR = std::max(2.3f, 3.3f * scale);
+            SolidBrush darkTip(Gdiplus::Color(220, 18, 14, 10));
+            g.FillEllipse(&darkTip, centeredCircle(tip.X, tip.Y, tipR + 1.1f * scale));
+            SolidBrush tipBrush(gdipColor(style.pointerTip));
+            g.FillEllipse(&tipBrush, centeredCircle(tip.X, tip.Y, tipR));
+        }
+    }
+
+    // Center cap goes on top of the pointer root.
     if (style.drawCenterCap) {
         const float capR = half * 0.105f;
         SolidBrush cap(gdipColor(style.centerCap));
         g.FillEllipse(&cap, centeredCircle(cx, cy, capR));
-    }
 
-    {
-        const float rad = (angleDeg - 90.0f) * kPi / 180.0f;
-        const float r1 = half * style.indicatorInnerRadius;
-        const float r2 = half * style.indicatorOuterRadius;
-
-        const PointF p1(
-            cx + std::cos(rad) * r1,
-            cy + std::sin(rad) * r1);
-        const PointF p2(
-            cx + std::cos(rad) * r2,
-            cy + std::sin(rad) * r2);
-
-        Pen indicatorPen(
-            gdipColor(style.indicator),
-            std::max(1.0f, style.indicatorWidth * size / 128.0f));
-        indicatorPen.SetStartCap(LineCapRound);
-        indicatorPen.SetEndCap(LineCapRound);
-        g.DrawLine(&indicatorPen, p1, p2);
+        Pen capHi(Gdiplus::Color(95, 255, 255, 255), std::max(0.7f, 0.8f * scale));
+        g.DrawArc(&capHi, centeredCircle(cx, cy, capR * 0.86f), 205.0f, 115.0f);
     }
 }
 
@@ -144,10 +285,39 @@ private:
     ULONG_PTR token_ {0};
 };
 
+KnobStyle makeMixEngineAnalog() {
+    KnobStyle s {
+        L"MixEngine Analog",
+        {115, 0, 0, 0},
+        {255, 49, 54, 60},
+        {255, 13, 16, 20},
+        {255, 49, 51, 53},
+        {255, 10, 12, 15},
+        {255, 4, 5, 7},
+        {105, 226, 232, 238},
+        {255, 224, 54, 43},
+        {255, 27, 29, 31},
+        5.0f, 1.03f, 0.465f, 0.350f, 0.080f, 0.305f, 3.4f, true
+    };
+
+    s.accentRing = {255, 151, 121, 74};
+    s.scaleTick = {255, 224, 214, 194};
+    s.knurlHighlight = {82, 182, 188, 194};
+    s.knurlShadow = {165, 0, 0, 0};
+    s.pointerTip = {255, 243, 224, 183};
+    s.drawAccentRing = true;
+    s.drawScaleTicks = true;
+    s.drawKnurling = true;
+    s.drawPointerTip = true;
+    s.drawBrushedBezel = true;
+    return s;
+}
+
 } // namespace
 
 std::vector<KnobStyle> KnobRenderer::builtInStyles() {
     return {
+        makeMixEngineAnalog(),
         {
             L"Black Studio",
             {92, 0, 0, 0},
@@ -225,7 +395,6 @@ bool KnobRenderer::renderVerticalFilmstrip(
         return false;
     }
 
-    // Avoid integer overflow and unreasonable allocations.
     if (options.cellSize > 2048 ||
         options.frameCount > 512 ||
         options.cellSize > (INT_MAX / options.frameCount)) {
