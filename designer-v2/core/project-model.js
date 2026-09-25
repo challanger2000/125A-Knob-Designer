@@ -143,6 +143,31 @@ export function calculateFilmstripDimensions(project) {
   return { width:o.frameWidth*cols, height:o.frameHeight*rows, columns:cols, rows };
 }
 
+export function validateExportPlan(project, maxCanvasDimension=32767) {
+  const dimensions = calculateFilmstripDimensions(project);
+  const supersample = Number(project.output.supersample ?? 2);
+  const errors = [];
+  if (!Number.isFinite(supersample) || supersample < 1 || supersample > 4) {
+    errors.push('supersample must be between 1 and 4');
+  }
+  if (dimensions.width > maxCanvasDimension || dimensions.height > maxCanvasDimension) {
+    errors.push(`filmstrip canvas exceeds ${maxCanvasDimension}px: ${dimensions.width}x${dimensions.height}`);
+  }
+  const renderWidth = project.output.frameWidth * supersample;
+  const renderHeight = project.output.frameHeight * supersample;
+  if (renderWidth > maxCanvasDimension || renderHeight > maxCanvasDimension) {
+    errors.push(`supersampled frame exceeds ${maxCanvasDimension}px: ${renderWidth}x${renderHeight}`);
+  }
+  return {
+    ok: errors.length === 0,
+    errors,
+    dimensions,
+    supersample,
+    renderWidth,
+    renderHeight
+  };
+}
+
 export function calculateFrameAngle(project,index) {
   const count = project.output.frameCount;
   const t = count <= 1 ? 0 : clamp(index,0,count-1)/(count-1);
