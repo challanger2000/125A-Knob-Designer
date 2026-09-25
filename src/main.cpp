@@ -1,0 +1,76 @@
+#include "KnobRenderer.h"
+
+#include <windows.h>
+
+#include <filesystem>
+#include <iostream>
+#include <string>
+
+namespace fs = std::filesystem;
+
+namespace {
+
+std::wstring safeFilename(std::wstring name) {
+    for (auto& ch : name) {
+        if (ch == L' ') {
+            ch = L'_';
+        }
+    }
+    return name;
+}
+
+} // namespace
+
+int wmain(int argc, wchar_t** argv) {
+    using namespace knob125a;
+
+    RenderOptions options;
+    fs::path outputDir = L"exports";
+
+    if (argc >= 2) {
+        outputDir = argv[1];
+    }
+    if (argc >= 3) {
+        options.cellSize = std::max(16, _wtoi(argv[2]));
+    }
+    if (argc >= 4) {
+        options.frameCount = std::max(2, _wtoi(argv[3]));
+    }
+
+    std::error_code ec;
+    fs::create_directories(outputDir, ec);
+    if (ec) {
+        std::wcerr << L"Could not create output directory: "
+                   << outputDir.wstring() << L"\n";
+        return 2;
+    }
+
+    KnobRenderer renderer;
+    const auto styles = KnobRenderer::builtInStyles();
+
+    int failures = 0;
+    for (const auto& style : styles) {
+        const auto file =
+            outputDir /
+            (L"125A_" + safeFilename(style.name) + L"_" +
+             std::to_wstring(options.cellSize) + L"px_" +
+             std::to_wstring(options.frameCount) + L"f.png");
+
+        std::wcout << L"Rendering " << style.name
+                   << L" -> " << file.wstring() << L"\n";
+
+        if (!renderer.renderVerticalFilmstrip(
+                style, options, file.wstring())) {
+            ++failures;
+            std::wcerr << L"FAILED: " << style.name << L"\n";
+        }
+    }
+
+    if (failures != 0) {
+        std::wcerr << failures << L" export(s) failed.\n";
+        return 1;
+    }
+
+    std::wcout << L"All knob filmstrips exported successfully.\n";
+    return 0;
+}
