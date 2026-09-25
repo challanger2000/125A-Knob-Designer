@@ -41,7 +41,12 @@ add_executable(125A_GUI_Asset_Designer WIN32
 )
 
 target_compile_features(125A_GUI_Asset_Designer PRIVATE cxx_std_17)
-target_compile_definitions(125A_GUI_Asset_Designer PRIVATE UNICODE _UNICODE NOMINMAX)
+target_compile_definitions(
+    125A_GUI_Asset_Designer PRIVATE
+    UNICODE _UNICODE NOMINMAX
+    _WIN32_WINNT=0x0A00
+    WINVER=0x0A00
+)
 target_link_libraries(125A_GUI_Asset_Designer PRIVATE gdiplus comctl32)
 
 if(MSVC)

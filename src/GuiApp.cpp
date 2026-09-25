@@ -259,6 +259,10 @@ std::wstring selectedStyleName() {
 }
 
 bool renderPreview() {
+    // GDI+ Image::FromFile keeps the source file locked until the image
+    // object is destroyed. Release it before regenerating the same preview.
+    gApp.previewImage.reset();
+
     wchar_t tempPath[MAX_PATH] {};
     const DWORD len = GetTempPathW(MAX_PATH, tempPath);
     if (len == 0 || len >= MAX_PATH) {
@@ -438,8 +442,17 @@ void drawPreview(HDC hdc) {
 }
 
 void createControls(HWND window) {
-    HFONT font = static_cast<HFONT>(
-        GetStockObject(DEFAULT_GUI_FONT));
+    const UINT dpi = GetDpiForWindow(window);
+    const int fontHeight = -MulDiv(9, static_cast<int>(dpi), 72);
+    HFONT font = CreateFontW(
+        fontHeight, 0, 0, 0, FW_NORMAL,
+        FALSE, FALSE, FALSE,
+        DEFAULT_CHARSET,
+        OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS,
+        CLEARTYPE_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE,
+        L"Segoe UI");
 
     auto makeStatic = [&](const wchar_t* text, int x, int y, int w, int h) {
         HWND c = CreateWindowExW(
@@ -514,6 +527,8 @@ void createControls(HWND window) {
         WS_CHILD | WS_VISIBLE | SS_LEFT,
         24, 550, 270, 82,
         window, nullptr, nullptr, nullptr);
+
+    SetPropW(window, L"125A_UI_FONT", font);
 
     for (HWND c : {
         gApp.category, gApp.preset, gApp.scale, gApp.frame,
@@ -623,6 +638,11 @@ LRESULT CALLBACK windowProc(
 
         case WM_DESTROY:
             gApp.previewImage.reset();
+
+            if (HFONT font = reinterpret_cast<HFONT>(
+                    RemovePropW(hwnd, L"125A_UI_FONT"))) {
+                DeleteObject(font);
+            }
             if (!gApp.previewPath.empty()) {
                 std::error_code ec;
                 fs::remove(gApp.previewPath, ec);
@@ -641,6 +661,9 @@ int WINAPI wWinMain(
     HINSTANCE,
     PWSTR,
     int showCommand) {
+
+    SetProcessDpiAwarenessContext(
+        DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     INITCOMMONCONTROLSEX controls {
         sizeof(INITCOMMONCONTROLSEX),
@@ -681,13 +704,19 @@ int WINAPI wWinMain(
         return 1;
     }
 
+    const UINT systemDpi = GetDpiForSystem();
+    const int initialWidth =
+        MulDiv(1120, static_cast<int>(systemDpi), 96);
+    const int initialHeight =
+        MulDiv(720, static_cast<int>(systemDpi), 96);
+
     HWND window = CreateWindowExW(
         0,
         kWindowClass,
         L"125A GUI Asset Designer v0.1.0",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        1120, 720,
+        initialWidth, initialHeight,
         nullptr, nullptr, instance, nullptr);
 
     if (!window) {

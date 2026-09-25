@@ -7,6 +7,7 @@ on:
       - v0.1.0
     paths:
       - "src/**"
+      - "!src/GuiApp.cpp"
       - "CMakeLists.txt"
       - ".github/workflows/publish-mixengine-assets.yml"
 
