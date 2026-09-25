@@ -13,7 +13,7 @@
     "three": "0.182.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.8.5",
+    "@tauri-apps/cli": "2.11.5",
     "vite": "7.3.1"
   }
 }
