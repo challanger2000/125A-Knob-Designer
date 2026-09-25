@@ -9,6 +9,8 @@ add_executable(125A_Knob_Designer
     src/main.cpp
     src/KnobRenderer.cpp
     src/KnobRenderer.h
+    src/HardwareRenderer.cpp
+    src/HardwareRenderer.h
 )
 
 target_compile_features(125A_Knob_Designer PRIVATE cxx_std_17)
