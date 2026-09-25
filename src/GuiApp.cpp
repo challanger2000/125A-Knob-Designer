@@ -5,6 +5,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <commdlg.h>
 #include <gdiplus.h>
 
 #include <algorithm>
@@ -16,6 +17,7 @@
 
 #pragma comment(lib, "gdiplus.lib")
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "comdlg32.lib")
 
 namespace fs = std::filesystem;
 using namespace knob125a;
@@ -30,7 +32,25 @@ enum ControlId {
     IdScale = 1003,
     IdFrame = 1004,
     IdRender = 1005,
-    IdExport = 1006
+    IdExport = 1006,
+
+    IdSize = 1101,
+    IdFrames = 1102,
+    IdStartAngle = 1103,
+    IdEndAngle = 1104,
+    IdTicks = 1105,
+
+    IdAccentToggle = 1110,
+    IdTicksToggle = 1111,
+    IdKnurlToggle = 1112,
+    IdPointerTipToggle = 1113,
+    IdBrushedToggle = 1114,
+
+    IdBodyColor = 1120,
+    IdBezelColor = 1121,
+    IdAccentColor = 1122,
+    IdPointerColor = 1123,
+    IdResetKnob = 1130
 };
 
 struct AppState {
@@ -40,6 +60,23 @@ struct AppState {
     HWND scale {};
     HWND frame {};
     HWND status {};
+
+    HWND knobPanel {};
+    HWND knobSize {};
+    HWND knobFrames {};
+    HWND knobStartAngle {};
+    HWND knobEndAngle {};
+    HWND knobTicks {};
+    HWND knobAccentToggle {};
+    HWND knobTicksToggle {};
+    HWND knobKnurlToggle {};
+    HWND knobPointerTipToggle {};
+    HWND knobBrushedToggle {};
+    HWND knobBodyColor {};
+    HWND knobBezelColor {};
+    HWND knobAccentColor {};
+    HWND knobPointerColor {};
+    HWND knobReset {};
 
     std::unique_ptr<Gdiplus::Image> previewImage;
     fs::path previewPath;
@@ -52,13 +89,17 @@ struct AppState {
     std::vector<HardwareAssetStyle> hardwareStyles;
     std::vector<FaderStyle> faderStyles;
     std::vector<MeterStyle> meterStyles;
+
+    KnobStyle editedKnob {};
+    RenderOptions editedKnobOptions {};
+    bool editedKnobValid {false};
 };
 
 AppState gApp;
 
 std::wstring safeFilename(std::wstring name) {
     for (auto& ch : name) {
-        if (ch == L' ') {
+        if (ch == L' ' || ch == L'/' || ch == L'\\') {
             ch = L'_';
         }
     }
@@ -77,8 +118,9 @@ float selectedScale() {
 }
 
 int selectedCategory() {
-    return static_cast<int>(
+    const int index = static_cast<int>(
         SendMessageW(gApp.category, CB_GETCURSEL, 0, 0));
+    return std::max(0, index);
 }
 
 int selectedPreset() {
@@ -89,6 +131,193 @@ int selectedPreset() {
 
 void setStatus(const std::wstring& text) {
     SetWindowTextW(gApp.status, text.c_str());
+}
+
+int readInt(HWND edit, int fallback, int minValue, int maxValue) {
+    wchar_t buffer[64] {};
+    GetWindowTextW(edit, buffer, 64);
+    wchar_t* end = nullptr;
+    const long value = wcstol(buffer, &end, 10);
+    if (end == buffer) {
+        return fallback;
+    }
+    return std::clamp(static_cast<int>(value), minValue, maxValue);
+}
+
+float readFloat(HWND edit, float fallback, float minValue, float maxValue) {
+    wchar_t buffer[64] {};
+    GetWindowTextW(edit, buffer, 64);
+    wchar_t* end = nullptr;
+    const double value = wcstod(buffer, &end);
+    if (end == buffer) {
+        return fallback;
+    }
+    return std::clamp(static_cast<float>(value), minValue, maxValue);
+}
+
+void setEditInt(HWND edit, int value) {
+    SetWindowTextW(edit, std::to_wstring(value).c_str());
+}
+
+void setEditFloat(HWND edit, float value) {
+    wchar_t buffer[64] {};
+    swprintf_s(buffer, L"%.1f", static_cast<double>(value));
+    SetWindowTextW(edit, buffer);
+}
+
+COLORREF toColorRef(const Color& c) {
+    return RGB(c.r, c.g, c.b);
+}
+
+Color fromColorRef(COLORREF value, std::uint8_t alpha = 255) {
+    return {
+        alpha,
+        GetRValue(value),
+        GetGValue(value),
+        GetBValue(value)
+    };
+}
+
+Color darker(Color c, float factor) {
+    c.r = static_cast<std::uint8_t>(
+        std::clamp(static_cast<int>(std::lround(c.r * factor)), 0, 255));
+    c.g = static_cast<std::uint8_t>(
+        std::clamp(static_cast<int>(std::lround(c.g * factor)), 0, 255));
+    c.b = static_cast<std::uint8_t>(
+        std::clamp(static_cast<int>(std::lround(c.b * factor)), 0, 255));
+    return c;
+}
+
+bool chooseColor(HWND owner, Color& target) {
+    static COLORREF custom[16] {};
+    CHOOSECOLORW cc {};
+    cc.lStructSize = sizeof(cc);
+    cc.hwndOwner = owner;
+    cc.rgbResult = toColorRef(target);
+    cc.lpCustColors = custom;
+    cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+
+    if (!ChooseColorW(&cc)) {
+        return false;
+    }
+
+    target = fromColorRef(cc.rgbResult, target.a);
+    return true;
+}
+
+void applyKnobEditor() {
+    if (!gApp.editedKnobValid) {
+        return;
+    }
+
+    gApp.editedKnob.preferredCellSize =
+        readInt(
+            gApp.knobSize,
+            gApp.editedKnob.preferredCellSize,
+            24,
+            512);
+
+    gApp.editedKnobOptions.frameCount =
+        readInt(
+            gApp.knobFrames,
+            gApp.editedKnobOptions.frameCount,
+            2,
+            256);
+
+    gApp.editedKnobOptions.startAngleDeg =
+        readFloat(
+            gApp.knobStartAngle,
+            gApp.editedKnobOptions.startAngleDeg,
+            -360.0f,
+            360.0f);
+
+    gApp.editedKnobOptions.endAngleDeg =
+        readFloat(
+            gApp.knobEndAngle,
+            gApp.editedKnobOptions.endAngleDeg,
+            -360.0f,
+            360.0f);
+
+    gApp.editedKnob.tickCount =
+        readInt(
+            gApp.knobTicks,
+            gApp.editedKnob.tickCount,
+            3,
+            41);
+
+    gApp.editedKnob.drawAccentRing =
+        SendMessageW(gApp.knobAccentToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    gApp.editedKnob.drawScaleTicks =
+        SendMessageW(gApp.knobTicksToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    gApp.editedKnob.drawKnurling =
+        SendMessageW(gApp.knobKnurlToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    gApp.editedKnob.drawPointerTip =
+        SendMessageW(gApp.knobPointerTipToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+    gApp.editedKnob.drawBrushedBezel =
+        SendMessageW(gApp.knobBrushedToggle, BM_GETCHECK, 0, 0) == BST_CHECKED;
+}
+
+void syncKnobEditorFromPreset() {
+    const int preset = selectedPreset();
+    if (preset < 0 || preset >= static_cast<int>(gApp.knobStyles.size())) {
+        gApp.editedKnobValid = false;
+        return;
+    }
+
+    gApp.editedKnob = gApp.knobStyles[preset];
+    gApp.editedKnob.name = gApp.knobStyles[preset].name + L" Custom";
+
+    gApp.editedKnobOptions = {};
+    gApp.editedKnobOptions.cellSize = gApp.editedKnob.preferredCellSize;
+    gApp.editedKnobOptions.frameCount = 128;
+    gApp.editedKnobOptions.startAngleDeg = -135.0f;
+    gApp.editedKnobOptions.endAngleDeg = 135.0f;
+    gApp.editedKnobValid = true;
+
+    setEditInt(gApp.knobSize, gApp.editedKnob.preferredCellSize);
+    setEditInt(gApp.knobFrames, gApp.editedKnobOptions.frameCount);
+    setEditFloat(gApp.knobStartAngle, gApp.editedKnobOptions.startAngleDeg);
+    setEditFloat(gApp.knobEndAngle, gApp.editedKnobOptions.endAngleDeg);
+    setEditInt(gApp.knobTicks, gApp.editedKnob.tickCount);
+
+    SendMessageW(
+        gApp.knobAccentToggle, BM_SETCHECK,
+        gApp.editedKnob.drawAccentRing ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessageW(
+        gApp.knobTicksToggle, BM_SETCHECK,
+        gApp.editedKnob.drawScaleTicks ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessageW(
+        gApp.knobKnurlToggle, BM_SETCHECK,
+        gApp.editedKnob.drawKnurling ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessageW(
+        gApp.knobPointerTipToggle, BM_SETCHECK,
+        gApp.editedKnob.drawPointerTip ? BST_CHECKED : BST_UNCHECKED, 0);
+    SendMessageW(
+        gApp.knobBrushedToggle, BM_SETCHECK,
+        gApp.editedKnob.drawBrushedBezel ? BST_CHECKED : BST_UNCHECKED, 0);
+}
+
+void showKnobEditor(bool visible) {
+    const int cmd = visible ? SW_SHOW : SW_HIDE;
+    for (HWND h : {
+        gApp.knobPanel,
+        gApp.knobSize,
+        gApp.knobFrames,
+        gApp.knobStartAngle,
+        gApp.knobEndAngle,
+        gApp.knobTicks,
+        gApp.knobAccentToggle,
+        gApp.knobTicksToggle,
+        gApp.knobKnurlToggle,
+        gApp.knobPointerTipToggle,
+        gApp.knobBrushedToggle,
+        gApp.knobBodyColor,
+        gApp.knobBezelColor,
+        gApp.knobAccentColor,
+        gApp.knobPointerColor,
+        gApp.knobReset}) {
+        ShowWindow(h, cmd);
+    }
 }
 
 void populatePresets() {
@@ -131,6 +360,12 @@ void populatePresets() {
     }
 
     SendMessageW(gApp.preset, CB_SETCURSEL, 0, 0);
+
+    const bool knobMode = category == 0;
+    showKnobEditor(knobMode);
+    if (knobMode) {
+        syncKnobEditorFromPreset();
+    }
 }
 
 bool renderSelectedTo(
@@ -141,18 +376,19 @@ bool renderSelectedTo(
     const int preset = selectedPreset();
 
     if (category == 0) {
-        if (preset >= static_cast<int>(gApp.knobStyles.size())) {
+        if (preset >= static_cast<int>(gApp.knobStyles.size()) ||
+            !gApp.editedKnobValid) {
             return false;
         }
 
-        const auto& style = gApp.knobStyles[preset];
-        RenderOptions options;
+        applyKnobEditor();
+
+        RenderOptions options = gApp.editedKnobOptions;
         options.cellSize = std::max(
             16,
             static_cast<int>(std::lround(
-                static_cast<double>(style.preferredCellSize) *
+                static_cast<double>(gApp.editedKnob.preferredCellSize) *
                 static_cast<double>(scaleFactor))));
-        options.frameCount = 128;
 
         gApp.cellWidth = options.cellSize;
         gApp.cellHeight = options.cellSize;
@@ -160,7 +396,7 @@ bool renderSelectedTo(
 
         KnobRenderer renderer;
         return renderer.renderVerticalFilmstrip(
-            style, options, outputPath.wstring());
+            gApp.editedKnob, options, outputPath.wstring());
     }
 
     if (category == 1) {
@@ -239,9 +475,8 @@ std::wstring selectedStyleName() {
     const int category = selectedCategory();
     const int preset = selectedPreset();
 
-    if (category == 0 &&
-        preset < static_cast<int>(gApp.knobStyles.size())) {
-        return gApp.knobStyles[preset].name;
+    if (category == 0 && gApp.editedKnobValid) {
+        return gApp.editedKnob.name;
     }
     if (category == 1 &&
         preset < static_cast<int>(gApp.hardwareStyles.size())) {
@@ -259,14 +494,12 @@ std::wstring selectedStyleName() {
 }
 
 bool renderPreview() {
-    // GDI+ Image::FromFile keeps the source file locked until the image
-    // object is destroyed. Release it before regenerating the same preview.
     gApp.previewImage.reset();
 
     wchar_t tempPath[MAX_PATH] {};
     const DWORD len = GetTempPathW(MAX_PATH, tempPath);
     if (len == 0 || len >= MAX_PATH) {
-        setStatus(L"Preview path could not be created.");
+        setStatus(L"Preview-Pfad konnte nicht erstellt werden.");
         return false;
     }
 
@@ -274,7 +507,7 @@ bool renderPreview() {
         fs::path(tempPath) / L"125A_GUI_Asset_Designer_preview.png";
 
     if (!renderSelectedTo(gApp.previewPath, selectedScale())) {
-        setStatus(L"Preview render failed.");
+        setStatus(L"Vorschau konnte nicht gerendert werden.");
         return false;
     }
 
@@ -284,7 +517,7 @@ bool renderPreview() {
     if (!gApp.previewImage ||
         gApp.previewImage->GetLastStatus() != Gdiplus::Ok) {
         gApp.previewImage.reset();
-        setStatus(L"Preview image could not be loaded.");
+        setStatus(L"Vorschau konnte nicht geladen werden.");
         return false;
     }
 
@@ -301,11 +534,11 @@ bool renderPreview() {
         std::max(0, (gApp.frameCount - 1) / 2));
 
     setStatus(
-        L"Preview: " + selectedStyleName() +
+        L"Vorschau: " + selectedStyleName() +
         L" | " + std::to_wstring(gApp.cellWidth) +
         L"x" + std::to_wstring(gApp.cellHeight) +
         L" px | " + std::to_wstring(gApp.frameCount) +
-        L" Frames/States");
+        L" Frames/Zustände");
 
     InvalidateRect(gApp.window, nullptr, FALSE);
     return true;
@@ -336,21 +569,19 @@ void exportSelectedSet() {
         const int percent =
             static_cast<int>(std::lround(factor * 100.0f));
 
-        fs::path temp =
+        const fs::path file =
             outputDir /
             (baseName + L"_" +
              std::to_wstring(percent) +
              L"pct.png");
 
-        if (!renderSelectedTo(temp, factor)) {
+        if (!renderSelectedTo(file, factor)) {
             ++failures;
         }
     }
 
     if (failures == 0) {
-        setStatus(
-            L"Export fertig: " + outputDir.wstring());
-
+        setStatus(L"Export fertig: " + outputDir.wstring());
         MessageBoxW(
             gApp.window,
             (L"Vier Auflösungen wurden exportiert nach:\n\n" +
@@ -370,7 +601,7 @@ void drawPreview(HDC hdc) {
     RECT client {};
     GetClientRect(gApp.window, &client);
 
-    const int left = 330;
+    const int left = 620;
     const int top = 28;
     const int right = client.right - 28;
     const int bottom = client.bottom - 88;
@@ -410,20 +641,16 @@ void drawPreview(HDC hdc) {
     const int areaW = std::max(1, right - left - 60);
     const int areaH = std::max(1, bottom - top - 60);
 
-    const float sx =
-        static_cast<float>(areaW) / srcW;
-    const float sy =
-        static_cast<float>(areaH) / srcH;
+    const float sx = static_cast<float>(areaW) / srcW;
+    const float sy = static_cast<float>(areaH) / srcH;
     const float fit = std::min(sx, sy);
 
     const int dstW =
         std::max(1, static_cast<int>(std::lround(srcW * fit)));
     const int dstH =
         std::max(1, static_cast<int>(std::lround(srcH * fit)));
-    const int dstX =
-        left + (right - left - dstW) / 2;
-    const int dstY =
-        top + (bottom - top - dstH) / 2;
+    const int dstX = left + (right - left - dstW) / 2;
+    const int dstY = top + (bottom - top - dstH) / 2;
 
     Gdiplus::Graphics g(hdc);
     g.SetInterpolationMode(
@@ -439,6 +666,50 @@ void drawPreview(HDC hdc) {
         static_cast<INT>(srcW),
         static_cast<INT>(srcH),
         Gdiplus::UnitPixel);
+}
+
+HWND makeEdit(
+    HWND parent,
+    HMENU id,
+    int x,
+    int y,
+    int w,
+    int h,
+    HFONT font) {
+
+    HWND e = CreateWindowExW(
+        WS_EX_CLIENTEDGE,
+        L"EDIT",
+        L"",
+        WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL,
+        x, y, w, h,
+        parent, id, nullptr, nullptr);
+
+    SendMessageW(e, WM_SETFONT, reinterpret_cast<WPARAM>(font), TRUE);
+    return e;
+}
+
+HWND makeButton(
+    HWND parent,
+    HMENU id,
+    const wchar_t* text,
+    int x,
+    int y,
+    int w,
+    int h,
+    DWORD style,
+    HFONT font) {
+
+    HWND b = CreateWindowExW(
+        0,
+        L"BUTTON",
+        text,
+        WS_CHILD | WS_VISIBLE | style,
+        x, y, w, h,
+        parent, id, nullptr, nullptr);
+
+    SendMessageW(b, WM_SETFONT, reinterpret_cast<WPARAM>(font), TRUE);
+    return b;
 }
 
 void createControls(HWND window) {
@@ -473,7 +744,7 @@ void createControls(HWND window) {
         reinterpret_cast<HMENU>(IdCategory),
         nullptr, nullptr);
 
-    makeStatic(L"Preset", 24, 92, 260, 20);
+    makeStatic(L"Preset / Ausgangspunkt", 24, 92, 260, 20);
     gApp.preset = CreateWindowExW(
         0, L"COMBOBOX", L"",
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
@@ -482,7 +753,7 @@ void createControls(HWND window) {
         reinterpret_cast<HMENU>(IdPreset),
         nullptr, nullptr);
 
-    makeStatic(L"Auflösung", 24, 156, 260, 20);
+    makeStatic(L"Vorschau-Auflösung", 24, 156, 260, 20);
     gApp.scale = CreateWindowExW(
         0, L"COMBOBOX", L"",
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
@@ -500,33 +771,128 @@ void createControls(HWND window) {
         reinterpret_cast<HMENU>(IdFrame),
         nullptr, nullptr);
 
-    HWND renderButton = CreateWindowExW(
-        0, L"BUTTON", L"Vorschau rendern",
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        24, 314, 270, 36,
+    HWND renderButton = makeButton(
         window,
         reinterpret_cast<HMENU>(IdRender),
-        nullptr, nullptr);
+        L"Vorschau rendern",
+        24, 306, 270, 36,
+        BS_PUSHBUTTON,
+        font);
 
-    HWND exportButton = CreateWindowExW(
-        0, L"BUTTON", L"4 Auflösungen exportieren",
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        24, 360, 270, 36,
+    HWND exportButton = makeButton(
         window,
         reinterpret_cast<HMENU>(IdExport),
-        nullptr, nullptr);
+        L"4 Auflösungen exportieren",
+        24, 350, 270, 36,
+        BS_PUSHBUTTON,
+        font);
 
     makeStatic(
         L"Renderer: dieselbe Engine wie CI/GitHub\n"
         L"1x / 1.5x / 2x / 3x\n"
         L"Feste Geometrie / Safe Area / Pixel-Snap",
-        24, 430, 270, 90);
+        24, 410, 270, 72);
 
     gApp.status = CreateWindowExW(
         0, L"STATIC", L"Bereit.",
         WS_CHILD | WS_VISIBLE | SS_LEFT,
-        24, 550, 270, 82,
+        24, 510, 270, 90,
         window, nullptr, nullptr, nullptr);
+
+    // Knob editor.
+    gApp.knobPanel = makeStatic(
+        L"Eigener Knob",
+        322, 28, 260, 22);
+
+    makeStatic(L"Größe px", 322, 58, 90, 20);
+    gApp.knobSize = makeEdit(
+        window, reinterpret_cast<HMENU>(IdSize),
+        420, 54, 72, 24, font);
+
+    makeStatic(L"Frames", 322, 88, 90, 20);
+    gApp.knobFrames = makeEdit(
+        window, reinterpret_cast<HMENU>(IdFrames),
+        420, 84, 72, 24, font);
+
+    makeStatic(L"Startwinkel", 322, 118, 90, 20);
+    gApp.knobStartAngle = makeEdit(
+        window, reinterpret_cast<HMENU>(IdStartAngle),
+        420, 114, 72, 24, font);
+
+    makeStatic(L"Endwinkel", 322, 148, 90, 20);
+    gApp.knobEndAngle = makeEdit(
+        window, reinterpret_cast<HMENU>(IdEndAngle),
+        420, 144, 72, 24, font);
+
+    makeStatic(L"Skalenstriche", 322, 178, 90, 20);
+    gApp.knobTicks = makeEdit(
+        window, reinterpret_cast<HMENU>(IdTicks),
+        420, 174, 72, 24, font);
+
+    gApp.knobAccentToggle = makeButton(
+        window, reinterpret_cast<HMENU>(IdAccentToggle),
+        L"Akzentring",
+        322, 214, 125, 24,
+        BS_AUTOCHECKBOX, font);
+
+    gApp.knobTicksToggle = makeButton(
+        window, reinterpret_cast<HMENU>(IdTicksToggle),
+        L"Skala",
+        455, 214, 125, 24,
+        BS_AUTOCHECKBOX, font);
+
+    gApp.knobKnurlToggle = makeButton(
+        window, reinterpret_cast<HMENU>(IdKnurlToggle),
+        L"Rändelung",
+        322, 242, 125, 24,
+        BS_AUTOCHECKBOX, font);
+
+    gApp.knobPointerTipToggle = makeButton(
+        window, reinterpret_cast<HMENU>(IdPointerTipToggle),
+        L"Pointer-Tip",
+        455, 242, 125, 24,
+        BS_AUTOCHECKBOX, font);
+
+    gApp.knobBrushedToggle = makeButton(
+        window, reinterpret_cast<HMENU>(IdBrushedToggle),
+        L"Brushed Bezel",
+        322, 270, 258, 24,
+        BS_AUTOCHECKBOX, font);
+
+    gApp.knobBodyColor = makeButton(
+        window, reinterpret_cast<HMENU>(IdBodyColor),
+        L"Körperfarbe...",
+        322, 310, 125, 30,
+        BS_PUSHBUTTON, font);
+
+    gApp.knobBezelColor = makeButton(
+        window, reinterpret_cast<HMENU>(IdBezelColor),
+        L"Bezelfarbe...",
+        455, 310, 125, 30,
+        BS_PUSHBUTTON, font);
+
+    gApp.knobAccentColor = makeButton(
+        window, reinterpret_cast<HMENU>(IdAccentColor),
+        L"Akzentfarbe...",
+        322, 348, 125, 30,
+        BS_PUSHBUTTON, font);
+
+    gApp.knobPointerColor = makeButton(
+        window, reinterpret_cast<HMENU>(IdPointerColor),
+        L"Pointerfarbe...",
+        455, 348, 125, 30,
+        BS_PUSHBUTTON, font);
+
+    gApp.knobReset = makeButton(
+        window, reinterpret_cast<HMENU>(IdResetKnob),
+        L"Preset zurücksetzen",
+        322, 394, 258, 32,
+        BS_PUSHBUTTON, font);
+
+    makeStatic(
+        L"Preset wählen → Werte ändern → Vorschau → Export.\n"
+        L"Die Änderungen betreffen nur deinen Export, nicht das Originalpreset.",
+        322, 448, 258, 62);
 
     SetPropW(window, L"125A_UI_FONT", font);
 
@@ -586,15 +952,68 @@ LRESULT CALLBACK windowProc(
             const int id = LOWORD(wParam);
             const int code = HIWORD(wParam);
 
-            if (id == IdCategory &&
-                code == CBN_SELCHANGE) {
+            if (id == IdCategory && code == CBN_SELCHANGE) {
                 populatePresets();
                 renderPreview();
                 return 0;
             }
 
-            if ((id == IdPreset || id == IdScale) &&
-                code == CBN_SELCHANGE) {
+            if (id == IdPreset && code == CBN_SELCHANGE) {
+                if (selectedCategory() == 0) {
+                    syncKnobEditorFromPreset();
+                }
+                renderPreview();
+                return 0;
+            }
+
+            if (id == IdScale && code == CBN_SELCHANGE) {
+                renderPreview();
+                return 0;
+            }
+
+            if (id == IdResetKnob) {
+                syncKnobEditorFromPreset();
+                renderPreview();
+                return 0;
+            }
+
+            if (id == IdBodyColor && gApp.editedKnobValid) {
+                if (chooseColor(hwnd, gApp.editedKnob.bodyTop)) {
+                    gApp.editedKnob.bodyBottom =
+                        darker(gApp.editedKnob.bodyTop, 0.35f);
+                    renderPreview();
+                }
+                return 0;
+            }
+
+            if (id == IdBezelColor && gApp.editedKnobValid) {
+                if (chooseColor(hwnd, gApp.editedKnob.bezelOuter)) {
+                    gApp.editedKnob.bezelInner =
+                        darker(gApp.editedKnob.bezelOuter, 0.32f);
+                    renderPreview();
+                }
+                return 0;
+            }
+
+            if (id == IdAccentColor && gApp.editedKnobValid) {
+                if (chooseColor(hwnd, gApp.editedKnob.accentRing)) {
+                    renderPreview();
+                }
+                return 0;
+            }
+
+            if (id == IdPointerColor && gApp.editedKnobValid) {
+                if (chooseColor(hwnd, gApp.editedKnob.indicator)) {
+                    renderPreview();
+                }
+                return 0;
+            }
+
+            if (id == IdAccentToggle ||
+                id == IdTicksToggle ||
+                id == IdKnurlToggle ||
+                id == IdPointerTipToggle ||
+                id == IdBrushedToggle) {
                 renderPreview();
                 return 0;
             }
@@ -643,10 +1062,12 @@ LRESULT CALLBACK windowProc(
                     RemovePropW(hwnd, L"125A_UI_FONT"))) {
                 DeleteObject(font);
             }
+
             if (!gApp.previewPath.empty()) {
                 std::error_code ec;
                 fs::remove(gApp.previewPath, ec);
             }
+
             PostQuitMessage(0);
             return 0;
     }
@@ -706,9 +1127,9 @@ int WINAPI wWinMain(
 
     const UINT systemDpi = GetDpiForSystem();
     const int initialWidth =
-        MulDiv(1120, static_cast<int>(systemDpi), 96);
+        MulDiv(1420, static_cast<int>(systemDpi), 96);
     const int initialHeight =
-        MulDiv(720, static_cast<int>(systemDpi), 96);
+        MulDiv(820, static_cast<int>(systemDpi), 96);
 
     HWND window = CreateWindowExW(
         0,

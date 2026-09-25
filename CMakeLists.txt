@@ -47,7 +47,7 @@ target_compile_definitions(
     _WIN32_WINNT=0x0A00
     WINVER=0x0A00
 )
-target_link_libraries(125A_GUI_Asset_Designer PRIVATE gdiplus comctl32)
+target_link_libraries(125A_GUI_Asset_Designer PRIVATE gdiplus comctl32 comdlg32)
 
 if(MSVC)
     target_compile_options(125A_GUI_Asset_Designer PRIVATE /W4 /permissive- /utf-8)
