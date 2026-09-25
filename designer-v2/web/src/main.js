@@ -47,6 +47,7 @@ const project = {
     startAngle: -135,
     endAngle: 135,
     layout: 'vertical',
+    supersample: 2,
     scaleExports: [1,1.5,2,3]
   }
 };
@@ -119,10 +120,28 @@ app.innerHTML = `
             </select>
           </label>
         </div>
+        <div class="row">
+          <label>Layout
+            <select id="layout">
+              <option value="vertical" selected>Vertikal (VSTGUI)</option>
+              <option value="horizontal">Horizontal</option>
+              <option value="grid">Sprite-Grid</option>
+            </select>
+          </label>
+          <label>Qualität
+            <select id="supersample">
+              <option value="1">1× Schnell</option>
+              <option value="2" selected>2× Hoch</option>
+              <option value="3">3× Sehr hoch</option>
+              <option value="4">4× Maximum</option>
+            </select>
+          </label>
+        </div>
       </section>
 
       <div class="actions">
         <button id="exportPng" class="primary" type="button">Filmstrip PNG exportieren</button>
+        <button id="centerQa" type="button">Center-/Wobble-QA</button>
         <button id="save" type="button">Projekt speichern</button>
         <button id="reset" type="button">Zurücksetzen</button>
       </div>
@@ -167,13 +186,15 @@ function syncAndRender() {
   project.output.frameWidth = size;
   project.output.frameHeight = size;
   project.output.frameCount = Number($('frames').value);
+  project.output.layout = $('layout').value;
+  project.output.supersample = Number($('supersample').value);
   $('lenOut').textContent = String(project.design.indicator.length);
   preview.update(project);
   preview.setPreviewAngle(Number($('angle').value));
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
 }
 
-for (const id of ['name','shape','material','color','lighting','indicator','indicatorColor','length','size','frames']) {
+for (const id of ['name','shape','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
@@ -205,8 +226,8 @@ $('exportPng').addEventListener('click', async () => {
       $('status').textContent = `Filmstrip: ${done} / ${total} Frames`;
     });
     const name = safeFileName(project.name);
-    downloadBlob(blob, `${name}_${project.output.frameWidth}px_${project.output.frameCount}f_vertical.png`);
-    $('status').textContent = `Export fertig · ${project.output.frameWidth}px · ${project.output.frameCount} Frames`;
+    downloadBlob(blob, `${name}_${project.output.frameWidth}px_${project.output.frameCount}f_${project.output.layout}_${project.output.supersample}x.png`);
+    $('status').textContent = `Export fertig · ${project.output.frameWidth}px · ${project.output.frameCount} Frames · ${project.output.supersample}×`;
   } catch (error) {
     console.error(error);
     $('status').textContent = error.message || 'Export fehlgeschlagen';
@@ -214,6 +235,26 @@ $('exportPng').addEventListener('click', async () => {
   } finally {
     button.disabled = false;
     button.textContent = oldText;
+    preview.setPreviewAngle(Number($('angle').value));
+  }
+});
+
+$('centerQa').addEventListener('click', async () => {
+  syncAndRender();
+  const button = $('centerQa');
+  button.disabled = true;
+  try {
+    $('status').textContent = 'Center-/Wobble-QA läuft …';
+    const qa = await preview.measureCenterWobble(project, 9);
+    const px = qa.maxDrift.toFixed(2);
+    $('status').textContent = qa.pass
+      ? `Center-QA PASS · Drift ${px} px`
+      : `Center-QA CHECK · Drift ${px} px`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Center-QA fehlgeschlagen';
+  } finally {
+    button.disabled = false;
     preview.setPreviewAngle(Number($('angle').value));
   }
 });
@@ -234,6 +275,8 @@ $('reset').addEventListener('click', () => {
   $('length').value = '66';
   $('size').value = '96';
   $('frames').value = '128';
+  $('layout').value = 'vertical';
+  $('supersample').value = '2';
   $('angle').value = '0';
   syncAndRender();
 });
