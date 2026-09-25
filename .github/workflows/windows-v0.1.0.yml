@@ -1,0 +1,50 @@
+name: Windows v0.1.0 QA
+
+on:
+  push:
+    branches:
+      - v0.1.0
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-render:
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -A x64
+
+      - name: Build Release
+        run: cmake --build build --config Release --parallel
+
+      - name: Render reference filmstrips
+        run: .\build\Release\125A_Knob_Designer.exe exports
+
+      - name: Verify exports
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem exports -Filter *.png
+          if ($files.Count -ne 52) {
+            throw "Expected 52 PNG filmstrips (32 knobs + 20 hardware assets), found $($files.Count)."
+          }
+          foreach ($file in $files) {
+            if ($file.Length -le 0) {
+              throw "Empty export: $($file.Name)"
+            }
+            Write-Host "$($file.Name) - $($file.Length) bytes"
+          }
+
+      - name: Upload executable and filmstrips
+        uses: actions/upload-artifact@v4
+        with:
+          name: 125A-Knob-Designer-v0.1.0-preview
+          path: |
+            build/Release/125A_Knob_Designer.exe
+            exports/*.png
+          if-no-files-found: error

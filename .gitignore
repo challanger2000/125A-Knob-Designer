@@ -1,0 +1,9 @@
+/build/
+/out/
+/exports/
+.vs/
+.idea/
+*.user
+*.suo
+*.VC.db
+*.VC.VC.opendb
