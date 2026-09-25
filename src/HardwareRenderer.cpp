@@ -1,4 +1,5 @@
 #include "HardwareRenderer.h"
+#include "AssetGeometry.h"
 
 #include <windows.h>
 #include <gdiplus.h>
@@ -170,7 +171,11 @@ void drawToggle(
 
     const float baseW = half * (rocker ? 0.72f : 0.58f);
     const float baseH = half * (rocker ? 0.88f : 0.62f);
-    const RectF base(cx - baseW, cy - baseH, baseW * 2.0f, baseH * 2.0f);
+    const float baseX = snapHardEdge(cx - baseW, s.geometry);
+    const float baseY = snapHardEdge(cy - baseH, s.geometry);
+    const float baseR = snapHardEdge(cx + baseW, s.geometry);
+    const float baseB = snapHardEdge(cy + baseH, s.geometry);
+    const RectF base(baseX, baseY, baseR - baseX, baseB - baseY);
 
     LinearGradientBrush bezel(
         PointF(cx, cy - baseH), PointF(cx, cy + baseH),
@@ -225,10 +230,11 @@ void drawState(
     int state) {
 
     setup(g);
-    const float size = static_cast<float>(cellSize);
-    const float half = size * 0.5f;
-    const float cx = half;
-    const float cy = static_cast<float>(yOffset) + half;
+    const auto metrics = makeAssetMetrics(
+        cellSize, 0, yOffset, s.geometry);
+    const float half = metrics.safeHalf;
+    const float cx = metrics.cx;
+    const float cy = metrics.cy;
 
     switch (s.kind) {
         case HardwareAssetKind::Led:
@@ -251,6 +257,7 @@ void drawState(
 std::vector<HardwareAssetStyle> HardwareRenderer::builtInStyles() {
     HardwareAssetStyle ledRed;
     ledRed.name = L"MixEngine LED Red";
+    ledRed.geometry.safeAreaRatio = 0.84f;
     ledRed.kind = HardwareAssetKind::Led;
     ledRed.preferredCellSize = 32;
     ledRed.stateCount = 2;
@@ -262,12 +269,14 @@ std::vector<HardwareAssetStyle> HardwareRenderer::builtInStyles() {
 
     HardwareAssetStyle button;
     button.name = L"MixEngine Push Button";
+    button.geometry.safeAreaRatio = 0.88f;
     button.kind = HardwareAssetKind::PushButton;
     button.preferredCellSize = 64;
     button.stateCount = 3;
 
     HardwareAssetStyle toggle;
     toggle.name = L"MixEngine Toggle";
+    toggle.geometry.safeAreaRatio = 0.86f;
     toggle.kind = HardwareAssetKind::ToggleSwitch;
     toggle.preferredCellSize = 64;
     toggle.stateCount = 2;
