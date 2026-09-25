@@ -44,6 +44,10 @@ struct KnobStyle {
     bool drawKnurling {false};
     bool drawPointerTip {false};
     bool drawBrushedBezel {false};
+
+    // Native export recommendation for this style.
+    int preferredCellSize {128};
+    int tickCount {13};
 };
 
 struct RenderOptions {
