@@ -1,4 +1,5 @@
 #include "KnobRenderer.h"
+#include "AssetGeometry.h"
 
 #include <windows.h>
 #include <gdiplus.h>
@@ -132,11 +133,13 @@ void drawFrame(
     int cellSize,
     float angleDeg) {
 
-    const float size = static_cast<float>(cellSize);
-    const float scale = size / 128.0f;
-    const float cx = static_cast<float>(xOffset) + size * 0.5f;
-    const float cy = static_cast<float>(yOffset) + size * 0.5f;
-    const float half = size * 0.5f;
+    const auto metrics = makeAssetMetrics(
+        cellSize, xOffset, yOffset, style.geometry);
+    const float size = metrics.size;
+    const float scale = metrics.scale;
+    const float cx = metrics.cx;
+    const float cy = metrics.cy;
+    const float half = metrics.safeHalf;
 
     g.SetSmoothingMode(SmoothingModeAntiAlias);
     g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
@@ -328,6 +331,7 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
     s.drawBrushedBezel = !isSmall;
     s.preferredCellSize = isSmall ? 64 : (isLarge ? 128 : 96);
     s.tickCount = isLarge ? 15 : (isSmall ? 9 : 13);
+    s.geometry.safeAreaRatio = isSmall ? 0.88f : 0.92f;
     return s;
 }
 
