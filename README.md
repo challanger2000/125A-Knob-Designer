@@ -77,3 +77,17 @@ The renderer now also produces deterministic multi-resolution GUI hardware asset
 - MixEngine Rocker (off/on)
 
 These assets use the same procedural material/light/shadow approach as the knob renderer and export at 1x / 1.5x / 2x / 3x. The architecture keeps rendering independent from the future Windows editor so CI, other chats and the GUI can all use the same renderer.
+
+
+## Geometry contract
+
+All procedural assets follow one shared geometry contract:
+
+- deterministic cell center across every state and resolution
+- safe-area scaling so shadows/highlights stay inside the exported cell
+- resolution-independent optical-center offsets
+- hard-edge pixel snapping for rectangular switches and similar hardware
+- identical outer cell bounds for every frame/state in a filmstrip
+- the same geometry policy at 1x / 1.5x / 2x / 3x
+
+State animation is allowed inside the fixed cell (for example a pressed button face), but the asset anchor itself never moves. This avoids 1–2 px GUI corrections when switching states or resolutions.
