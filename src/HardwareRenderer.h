@@ -1,6 +1,7 @@
 #pragma once
 
 #include "KnobRenderer.h"
+#include "AssetGeometry.h"
 
 #include <string>
 #include <vector>
@@ -28,6 +29,8 @@ struct HardwareAssetStyle {
     Color shadow {120, 0, 0, 0};
     int preferredCellSize {64};
     int stateCount {2};
+    AssetGeometryPolicy geometry {};
+
 };
 
 class HardwareRenderer {
