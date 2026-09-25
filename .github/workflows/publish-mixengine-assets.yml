@@ -1,4 +1,4 @@
-name: Publish MixEngine Generated Assets
+name: Publish Generated Assets
 
 on:
   workflow_dispatch:
@@ -35,19 +35,39 @@ jobs:
         run: |
           .\build\Release\125A_Knob_Designer.exe exports
 
-      - name: Collect MixEngine knob filmstrips
+      - name: Categorize generated assets
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path published\mixengine | Out-Null
-          Get-ChildItem exports -Filter "125A_MixEngine_Analog_*.png" |
-            Copy-Item -Destination published\mixengine
+          New-Item -ItemType Directory -Force -Path published\mixengine\knobs | Out-Null
+          New-Item -ItemType Directory -Force -Path published\mixengine\hardware | Out-Null
+          New-Item -ItemType Directory -Force -Path published\mixengine\faders | Out-Null
+          New-Item -ItemType Directory -Force -Path published\general\knobs | Out-Null
 
-          $files = Get-ChildItem published\mixengine -Filter *.png
-          if ($files.Count -ne 12) {
-            throw "Expected 12 MixEngine knob PNGs (S/M/L x 4 resolutions), found $($files.Count)."
+          Get-ChildItem exports -Filter "125A_MixEngine_Analog_*.png" |
+            Copy-Item -Destination published\mixengine\knobs
+
+          Get-ChildItem exports -Filter "125A_MixEngine_LED_*.png" |
+            Copy-Item -Destination published\mixengine\hardware
+          Get-ChildItem exports -Filter "125A_MixEngine_Push_Button_*.png" |
+            Copy-Item -Destination published\mixengine\hardware
+          Get-ChildItem exports -Filter "125A_MixEngine_Toggle_*.png" |
+            Copy-Item -Destination published\mixengine\hardware
+          Get-ChildItem exports -Filter "125A_MixEngine_Rocker_*.png" |
+            Copy-Item -Destination published\mixengine\hardware
+
+          Get-ChildItem exports -Filter "125A_MixEngine_Fader_*.png" |
+            Copy-Item -Destination published\mixengine\faders
+
+          Get-ChildItem exports -Filter *.png |
+            Where-Object { $_.Name -notlike "125A_MixEngine_*" } |
+            Copy-Item -Destination published\general\knobs
+
+          $all = Get-ChildItem published -Recurse -Filter *.png
+          if ($all.Count -ne 56) {
+            throw "Expected 56 categorized PNG assets, found $($all.Count)."
           }
 
-      - name: Publish to generated-assets-v0.1.0 branch
+      - name: Publish generated asset branch
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
@@ -55,24 +75,25 @@ jobs:
 
           git checkout --orphan generated-assets-v0.1.0
           git rm -rf . 2>$null
-          New-Item -ItemType Directory -Force -Path assets\mixengine | Out-Null
-          Copy-Item published\mixengine\*.png assets\mixengine\
+
+          New-Item -ItemType Directory -Force -Path assets | Out-Null
+          Copy-Item published\* assets\ -Recurse
 
           @"
           # 125A Generated Assets
 
-          This branch is generated automatically from `v0.1.0`.
+          Generated automatically from `v0.1.0`.
 
-          ## MixEngine Analog knob family
+          - `assets/mixengine/knobs/` — MixEngine Analog S/M/L
+          - `assets/mixengine/hardware/` — LEDs, button, toggle, rocker
+          - `assets/mixengine/faders/` — MixEngine fader filmstrips
+          - `assets/general/knobs/` — reusable general knob families
 
-          - S / M / L
-          - 1x / 1.5x / 2x / 3x
-          - PNG vertical filmstrips
-          - generated from the current 125A GUI Asset Designer renderer
+          Multi-resolution assets are generated at 1x / 1.5x / 2x / 3x.
 
-          Do not edit these PNGs manually. Regenerate them from the source branch.
+          Do not edit generated PNGs manually. Change the renderer or preset and regenerate.
           "@ | Set-Content -Encoding UTF8 README.md
 
-          git add README.md assets\mixengine\*.png
-          git commit -m "Publish MixEngine generated assets"
+          git add README.md assets
+          git commit -m "Publish generated GUI assets"
           git push --force origin generated-assets-v0.1.0

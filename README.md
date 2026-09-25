@@ -91,3 +91,17 @@ All procedural assets follow one shared geometry contract:
 - the same geometry policy at 1x / 1.5x / 2x / 3x
 
 State animation is allowed inside the fixed cell (for example a pressed button face), but the asset anchor itself never moves. This avoids 1–2 px GUI corrections when switching states or resolutions.
+
+
+## Fader renderer
+
+The asset system now includes a procedural MixEngine vertical fader with:
+
+- fixed-cell geometry
+- 128 deterministic positions
+- rail, recess, scale ticks and hardware cap
+- red witness line
+- multi-resolution export at 1x / 1.5x / 2x / 3x
+- rectangular filmstrip cells rather than forcing faders into square knob cells
+
+Generated assets are published automatically to the `generated-assets-v0.1.0` branch so other chats and plugin repositories can consume the PNGs directly from GitHub.

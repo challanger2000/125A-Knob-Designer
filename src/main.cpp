@@ -1,5 +1,6 @@
 #include "KnobRenderer.h"
 #include "HardwareRenderer.h"
+#include "FaderRenderer.h"
 
 #include <windows.h>
 
@@ -124,6 +125,56 @@ int wmain(int argc, wchar_t** argv) {
 
             if (!hardwareRenderer.renderVerticalFilmstrip(
                     style, cellSize, file.wstring())) {
+                ++failures;
+                std::wcerr << L"FAILED: " << style.name
+                           << L" @ " << scalePercent << L"%\n";
+            }
+        }
+    }
+
+    FaderRenderer faderRenderer;
+    const auto faderStyles = FaderRenderer::builtInStyles();
+
+    for (const auto& style : faderStyles) {
+        for (const float scaleFactor : scaleFactors) {
+            const int width = explicitCellSize
+                ? options.cellSize
+                : std::max(
+                    16,
+                    static_cast<int>(std::lround(
+                        static_cast<double>(style.preferredWidth) *
+                        static_cast<double>(scaleFactor))));
+
+            const int height = explicitCellSize
+                ? std::max(
+                    32,
+                    static_cast<int>(std::lround(
+                        static_cast<double>(options.cellSize) *
+                        static_cast<double>(style.preferredHeight) /
+                        static_cast<double>(style.preferredWidth))))
+                : std::max(
+                    32,
+                    static_cast<int>(std::lround(
+                        static_cast<double>(style.preferredHeight) *
+                        static_cast<double>(scaleFactor))));
+
+            const int scalePercent =
+                static_cast<int>(std::lround(scaleFactor * 100.0f));
+
+            const auto file =
+                outputDir /
+                (L"125A_" + safeFilename(style.name) + L"_" +
+                 std::to_wstring(width) + L"x" +
+                 std::to_wstring(height) + L"px_" +
+                 std::to_wstring(scalePercent) + L"pct_" +
+                 std::to_wstring(style.frameCount) + L"f.png");
+
+            std::wcout << L"Rendering " << style.name
+                       << L" @ " << scalePercent << L"%"
+                       << L" -> " << file.wstring() << L"\n";
+
+            if (!faderRenderer.renderVerticalFilmstrip(
+                    style, width, height, style.frameCount, file.wstring())) {
                 ++failures;
                 std::wcerr << L"FAILED: " << style.name
                            << L" @ " << scalePercent << L"%\n";

@@ -12,6 +12,8 @@ add_executable(125A_Knob_Designer
     src/AssetGeometry.h
     src/HardwareRenderer.cpp
     src/HardwareRenderer.h
+    src/FaderRenderer.cpp
+    src/FaderRenderer.h
 )
 
 target_compile_features(125A_Knob_Designer PRIVATE cxx_std_17)
