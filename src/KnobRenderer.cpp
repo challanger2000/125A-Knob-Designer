@@ -285,31 +285,47 @@ private:
     ULONG_PTR token_ {0};
 };
 
-KnobStyle makeMixEngineAnalog() {
+enum class MixEngineKnobSize { Small, Medium, Large };
+
+KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
+    const bool small = variant == MixEngineKnobSize::Small;
+    const bool large = variant == MixEngineKnobSize::Large;
+
     KnobStyle s {
-        L"MixEngine Analog",
-        {115, 0, 0, 0},
+        small ? L"MixEngine Analog S" :
+        (large ? L"MixEngine Analog L" : L"MixEngine Analog M"),
+        {large ? 125u : 110u, 0, 0, 0},
         {255, 49, 54, 60},
         {255, 13, 16, 20},
         {255, 49, 51, 53},
         {255, 10, 12, 15},
         {255, 4, 5, 7},
-        {105, 226, 232, 238},
+        {large ? 120u : 100u, 226, 232, 238},
         {255, 224, 54, 43},
         {255, 27, 29, 31},
-        5.0f, 1.03f, 0.465f, 0.350f, 0.080f, 0.305f, 3.4f, true
+        large ? 5.5f : (small ? 3.0f : 4.5f),
+        large ? 1.035f : 1.025f,
+        large ? 0.475f : (small ? 0.430f : 0.458f),
+        large ? 0.340f : (small ? 0.355f : 0.350f),
+        small ? 0.095f : 0.080f,
+        large ? 0.300f : (small ? 0.292f : 0.302f),
+        large ? 3.8f : (small ? 3.1f : 3.4f),
+        true
     };
 
-    s.accentRing = {255, 151, 121, 74};
+    s.accentRing = large
+        ? Color{255, 166, 134, 82}
+        : Color{255, 151, 121, 74};
     s.scaleTick = {255, 224, 214, 194};
     s.knurlHighlight = {82, 182, 188, 194};
     s.knurlShadow = {165, 0, 0, 0};
     s.pointerTip = {255, 243, 224, 183};
     s.drawAccentRing = true;
-    s.drawScaleTicks = true;
-    s.drawKnurling = true;
+    // Small utility controls stay cleaner at tiny display sizes.
+    s.drawScaleTicks = !small;
+    s.drawKnurling = !small;
     s.drawPointerTip = true;
-    s.drawBrushedBezel = true;
+    s.drawBrushedBezel = !small;
     return s;
 }
 
@@ -317,7 +333,9 @@ KnobStyle makeMixEngineAnalog() {
 
 std::vector<KnobStyle> KnobRenderer::builtInStyles() {
     return {
-        makeMixEngineAnalog(),
+        makeMixEngineAnalog(MixEngineKnobSize::Large),
+        makeMixEngineAnalog(MixEngineKnobSize::Medium),
+        makeMixEngineAnalog(MixEngineKnobSize::Small),
         {
             L"Black Studio",
             {92, 0, 0, 0},
