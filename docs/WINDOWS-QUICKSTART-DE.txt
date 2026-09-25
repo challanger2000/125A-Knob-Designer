@@ -1,0 +1,19 @@
+125A GUI Asset Designer v0.1.0
+Windows x64
+
+KURZANLEITUNG
+
+1. 125A_GUI_Asset_Designer.exe starten.
+2. Asset-Typ wählen: Knob, Hardware, Fader oder Meter/VU.
+3. Ein Preset als Ausgangspunkt wählen.
+4. Werte und Farben anpassen.
+5. Mit dem Frame/Zustand-Regler die Filmstrip-Frames prüfen.
+6. Unter "Asset-Name" einen eigenen Namen vergeben.
+7. "Preset speichern..." speichert die aktuelle Konfiguration als .125apreset.
+8. "Preset laden..." lädt eine zuvor gespeicherte Konfiguration.
+9. "4 Auflösungen exportieren" erzeugt 1x / 1.5x / 2x / 3x im Ordner exports-gui.
+
+125A_Knob_Designer.exe ist die CLI-/CI-Version und rendert die integrierte Asset-Bibliothek automatisch.
+
+Hinweis:
+Die generierten PNGs sind vertikale Filmstrips für VSTGUI-orientierte Workflows.

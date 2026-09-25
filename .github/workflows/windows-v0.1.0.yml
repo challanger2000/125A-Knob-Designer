@@ -96,12 +96,20 @@ jobs:
             Write-Host "$($file.Name) - $($file.Length) bytes - $width x $height"
           }
 
+      - name: Build Windows package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path package | Out-Null
+          Copy-Item build/Release/125A_Knob_Designer.exe package/
+          Copy-Item build/Release/125A_GUI_Asset_Designer.exe package/
+          Copy-Item docs/WINDOWS-QUICKSTART-DE.txt package/
+          Compress-Archive -Path package/* -DestinationPath 125A-GUI-Asset-Designer-v0.1.0-Windows-x64.zip -Force
+
       - name: Upload executable and filmstrips
         uses: actions/upload-artifact@v4
         with:
-          name: 125A-Knob-Designer-v0.1.0-preview
+          name: 125A-GUI-Asset-Designer-v0.1.0-Windows-x64
           path: |
-            build/Release/125A_Knob_Designer.exe
-            build/Release/125A_GUI_Asset_Designer.exe
+            125A-GUI-Asset-Designer-v0.1.0-Windows-x64.zip
             exports/*.png
           if-no-files-found: error

@@ -120,11 +120,23 @@ struct AppState {
 AppState gApp;
 
 std::wstring safeFilename(std::wstring name) {
+    const std::wstring invalid = L"<>:\"/\\|?*";
     for (auto& ch : name) {
-        if (ch == L' ' || ch == L'/' || ch == L'\\') {
+        if (ch == L' ' || invalid.find(ch) != std::wstring::npos ||
+            ch < 32) {
             ch = L'_';
         }
     }
+
+    while (!name.empty() &&
+           (name.back() == L'.' || name.back() == L' ')) {
+        name.pop_back();
+    }
+
+    if (name.empty()) {
+        name = L"Asset";
+    }
+
     return name;
 }
 
@@ -232,6 +244,32 @@ std::wstring iniRead(
         section, key, fallback.c_str(),
         buffer, 512, path.c_str());
     return buffer;
+}
+
+int parseIntSetting(
+    const std::wstring& value,
+    int fallback,
+    int minValue,
+    int maxValue) {
+
+    try {
+        return std::clamp(std::stoi(value), minValue, maxValue);
+    } catch (...) {
+        return fallback;
+    }
+}
+
+float parseFloatSetting(
+    const std::wstring& value,
+    float fallback,
+    float minValue,
+    float maxValue) {
+
+    try {
+        return std::clamp(std::stof(value), minValue, maxValue);
+    } catch (...) {
+        return fallback;
+    }
 }
 
 int readInt(HWND edit, int fallback, int minValue, int maxValue) {
@@ -993,17 +1031,20 @@ void loadCustomPreset() {
         return;
     }
 
-    const int category = std::clamp(
-        std::stoi(iniRead(path, L"Preset", L"Category", L"0")), 0, 3);
+    const int category =
+        parseIntSetting(iniRead(path, L"Preset", L"Category", L"0"), 0, 0, 3);
 
     SendMessageW(gApp.category, CB_SETCURSEL, category, 0);
     populatePresets();
 
     const int count = static_cast<int>(
         SendMessageW(gApp.preset, CB_GETCOUNT, 0, 0));
-    const int basePreset = std::clamp(
-        std::stoi(iniRead(path, L"Preset", L"BasePreset", L"0")),
-        0, std::max(0, count - 1));
+    const int basePreset =
+        parseIntSetting(
+            iniRead(path, L"Preset", L"BasePreset", L"0"),
+            0,
+            0,
+            std::max(0, count - 1));
 
     SendMessageW(gApp.preset, CB_SETCURSEL, basePreset, 0);
     configureEditorForCategory();
@@ -1015,15 +1056,15 @@ void loadCustomPreset() {
     if (category == 0 && gApp.editedKnobValid) {
         gApp.editedKnob.name = name;
         gApp.editedKnob.preferredCellSize =
-            std::stoi(iniRead(path, L"Knob", L"Size", std::to_wstring(gApp.editedKnob.preferredCellSize)));
+            parseIntSetting(iniRead(path, L"Knob", L"Size", std::to_wstring(gApp.editedKnob.preferredCellSize)), gApp.editedKnob.preferredCellSize, 24, 512);
         gApp.editedKnobOptions.frameCount =
-            std::stoi(iniRead(path, L"Knob", L"Frames", std::to_wstring(gApp.editedKnobOptions.frameCount)));
+            parseIntSetting(iniRead(path, L"Knob", L"Frames", std::to_wstring(gApp.editedKnobOptions.frameCount)), gApp.editedKnobOptions.frameCount, 2, 256);
         gApp.editedKnobOptions.startAngleDeg =
-            std::stof(iniRead(path, L"Knob", L"StartAngle", std::to_wstring(gApp.editedKnobOptions.startAngleDeg)));
+            parseFloatSetting(iniRead(path, L"Knob", L"StartAngle", std::to_wstring(gApp.editedKnobOptions.startAngleDeg)), gApp.editedKnobOptions.startAngleDeg, -360.0f, 360.0f);
         gApp.editedKnobOptions.endAngleDeg =
-            std::stof(iniRead(path, L"Knob", L"EndAngle", std::to_wstring(gApp.editedKnobOptions.endAngleDeg)));
+            parseFloatSetting(iniRead(path, L"Knob", L"EndAngle", std::to_wstring(gApp.editedKnobOptions.endAngleDeg)), gApp.editedKnobOptions.endAngleDeg, -360.0f, 360.0f);
         gApp.editedKnob.tickCount =
-            std::stoi(iniRead(path, L"Knob", L"Ticks", std::to_wstring(gApp.editedKnob.tickCount)));
+            parseIntSetting(iniRead(path, L"Knob", L"Ticks", std::to_wstring(gApp.editedKnob.tickCount)), gApp.editedKnob.tickCount, 3, 41);
         gApp.editedKnob.drawAccentRing = iniRead(path, L"Knob", L"AccentRing", L"0") == L"1";
         gApp.editedKnob.drawScaleTicks = iniRead(path, L"Knob", L"ScaleTicks", L"0") == L"1";
         gApp.editedKnob.drawKnurling = iniRead(path, L"Knob", L"Knurling", L"0") == L"1";
@@ -1048,11 +1089,11 @@ void loadCustomPreset() {
     } else if (category == 1 && gApp.editedHardwareValid) {
         gApp.editedHardware.name = name;
         gApp.editedHardware.preferredCellSize =
-            std::stoi(iniRead(path, L"Hardware", L"Size", std::to_wstring(gApp.editedHardware.preferredCellSize)));
+            parseIntSetting(iniRead(path, L"Hardware", L"Size", std::to_wstring(gApp.editedHardware.preferredCellSize)), gApp.editedHardware.preferredCellSize, 16, 512);
         gApp.editedHardware.stateCount =
-            std::stoi(iniRead(path, L"Hardware", L"States", std::to_wstring(gApp.editedHardware.stateCount)));
+            parseIntSetting(iniRead(path, L"Hardware", L"States", std::to_wstring(gApp.editedHardware.stateCount)), gApp.editedHardware.stateCount, 2, 16);
         gApp.editedHardware.kind = static_cast<HardwareAssetKind>(
-            std::stoi(iniRead(path, L"Hardware", L"Kind", std::to_wstring(static_cast<int>(gApp.editedHardware.kind)))));
+            parseIntSetting(iniRead(path, L"Hardware", L"Kind", std::to_wstring(static_cast<int>(gApp.editedHardware.kind))), static_cast<int>(gApp.editedHardware.kind), 0, 3));
         gApp.editedHardware.faceTop = parseColor(iniRead(path, L"Hardware", L"FaceTop"), gApp.editedHardware.faceTop);
         gApp.editedHardware.faceBottom = parseColor(iniRead(path, L"Hardware", L"FaceBottom"), gApp.editedHardware.faceBottom);
         gApp.editedHardware.metalTop = parseColor(iniRead(path, L"Hardware", L"MetalTop"), gApp.editedHardware.metalTop);
@@ -1064,11 +1105,11 @@ void loadCustomPreset() {
     } else if (category == 2 && gApp.editedFaderValid) {
         gApp.editedFader.name = name;
         gApp.editedFader.preferredWidth =
-            std::stoi(iniRead(path, L"Fader", L"Width", std::to_wstring(gApp.editedFader.preferredWidth)));
+            parseIntSetting(iniRead(path, L"Fader", L"Width", std::to_wstring(gApp.editedFader.preferredWidth)), gApp.editedFader.preferredWidth, 24, 512);
         gApp.editedFader.preferredHeight =
-            std::stoi(iniRead(path, L"Fader", L"Height", std::to_wstring(gApp.editedFader.preferredHeight)));
+            parseIntSetting(iniRead(path, L"Fader", L"Height", std::to_wstring(gApp.editedFader.preferredHeight)), gApp.editedFader.preferredHeight, 48, 1024);
         gApp.editedFader.frameCount =
-            std::stoi(iniRead(path, L"Fader", L"Frames", std::to_wstring(gApp.editedFader.frameCount)));
+            parseIntSetting(iniRead(path, L"Fader", L"Frames", std::to_wstring(gApp.editedFader.frameCount)), gApp.editedFader.frameCount, 2, 256);
         gApp.editedFader.capTop = parseColor(iniRead(path, L"Fader", L"CapTop"), gApp.editedFader.capTop);
         gApp.editedFader.capBottom = parseColor(iniRead(path, L"Fader", L"CapBottom"), gApp.editedFader.capBottom);
         gApp.editedFader.railInner = parseColor(iniRead(path, L"Fader", L"RailInner"), gApp.editedFader.railInner);
@@ -1081,15 +1122,15 @@ void loadCustomPreset() {
     } else if (category == 3 && gApp.editedMeterValid) {
         gApp.editedMeter.name = name;
         gApp.editedMeter.preferredWidth =
-            std::stoi(iniRead(path, L"Meter", L"Width", std::to_wstring(gApp.editedMeter.preferredWidth)));
+            parseIntSetting(iniRead(path, L"Meter", L"Width", std::to_wstring(gApp.editedMeter.preferredWidth)), gApp.editedMeter.preferredWidth, 48, 1024);
         gApp.editedMeter.preferredHeight =
-            std::stoi(iniRead(path, L"Meter", L"Height", std::to_wstring(gApp.editedMeter.preferredHeight)));
+            parseIntSetting(iniRead(path, L"Meter", L"Height", std::to_wstring(gApp.editedMeter.preferredHeight)), gApp.editedMeter.preferredHeight, 32, 768);
         gApp.editedMeter.frameCount =
-            std::stoi(iniRead(path, L"Meter", L"Frames", std::to_wstring(gApp.editedMeter.frameCount)));
+            parseIntSetting(iniRead(path, L"Meter", L"Frames", std::to_wstring(gApp.editedMeter.frameCount)), gApp.editedMeter.frameCount, 2, 256);
         gApp.editedMeter.startAngleDeg =
-            std::stof(iniRead(path, L"Meter", L"StartAngle", std::to_wstring(gApp.editedMeter.startAngleDeg)));
+            parseFloatSetting(iniRead(path, L"Meter", L"StartAngle", std::to_wstring(gApp.editedMeter.startAngleDeg)), gApp.editedMeter.startAngleDeg, -180.0f, 180.0f);
         gApp.editedMeter.endAngleDeg =
-            std::stof(iniRead(path, L"Meter", L"EndAngle", std::to_wstring(gApp.editedMeter.endAngleDeg)));
+            parseFloatSetting(iniRead(path, L"Meter", L"EndAngle", std::to_wstring(gApp.editedMeter.endAngleDeg)), gApp.editedMeter.endAngleDeg, -180.0f, 180.0f);
         gApp.editedMeter.faceTop = parseColor(iniRead(path, L"Meter", L"FaceTop"), gApp.editedMeter.faceTop);
         gApp.editedMeter.faceBottom = parseColor(iniRead(path, L"Meter", L"FaceBottom"), gApp.editedMeter.faceBottom);
         gApp.editedMeter.frameTop = parseColor(iniRead(path, L"Meter", L"FrameTop"), gApp.editedMeter.frameTop);
