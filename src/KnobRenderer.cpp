@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <memory>
+#include <vector>
 
 #pragma comment(lib, "gdiplus.lib")
 
@@ -16,11 +16,7 @@ using namespace Gdiplus;
 
 constexpr float kPi = 3.14159265358979323846f;
 
-ARGB argb(const Color& c) {
-    return Color(c.a, c.r, c.g, c.b).GetValue();
-}
-
-Gdiplus::Color gdipColor(const Color& c) {
+Gdiplus::Color gdipColor(const knob125a::Color& c) {
     return Gdiplus::Color(c.a, c.r, c.g, c.b);
 }
 
@@ -67,16 +63,12 @@ void drawFrame(
     g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
     g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
 
-    // Shadow
     {
         const float r = half * style.bezelRadius * style.shadowScale;
         SolidBrush brush(gdipColor(style.shadow));
-        g.FillEllipse(
-            &brush,
-            centeredCircle(cx, cy + style.shadowOffsetY, r));
+        g.FillEllipse(&brush, centeredCircle(cx, cy + style.shadowOffsetY, r));
     }
 
-    // Outer bezel
     {
         const float r = half * style.bezelRadius;
         LinearGradientBrush brush(
@@ -90,7 +82,6 @@ void drawFrame(
         g.DrawEllipse(&edgePen, centeredCircle(cx, cy, r));
     }
 
-    // Body
     {
         const float r = half * style.bodyRadius;
         LinearGradientBrush brush(
@@ -100,25 +91,21 @@ void drawFrame(
             gdipColor(style.bodyBottom));
         g.FillEllipse(&brush, centeredCircle(cx, cy, r));
 
-        // restrained specular arc / highlight
         Pen hiPen(gdipColor(style.highlight), std::max(1.0f, size * 0.018f));
         const RectF hiRect = centeredCircle(cx, cy, r * 0.90f);
         g.DrawArc(&hiPen, hiRect, 205.0f, 112.0f);
     }
 
-    // Optional center cap
     if (style.drawCenterCap) {
         const float capR = half * 0.105f;
         SolidBrush cap(gdipColor(style.centerCap));
         g.FillEllipse(&cap, centeredCircle(cx, cy, capR));
     }
 
-    // Indicator
     {
         const float rad = (angleDeg - 90.0f) * kPi / 180.0f;
-        const float bodyR = half;
-        const float r1 = bodyR * style.indicatorInnerRadius;
-        const float r2 = bodyR * style.indicatorOuterRadius;
+        const float r1 = half * style.indicatorInnerRadius;
+        const float r2 = half * style.indicatorOuterRadius;
 
         const PointF p1(
             cx + std::cos(rad) * r1,
@@ -238,6 +225,13 @@ bool KnobRenderer::renderVerticalFilmstrip(
         return false;
     }
 
+    // Avoid integer overflow and unreasonable allocations.
+    if (options.cellSize > 2048 ||
+        options.frameCount > 512 ||
+        options.cellSize > (INT_MAX / options.frameCount)) {
+        return false;
+    }
+
     GdiPlusSession session;
     if (!session.ok()) {
         return false;
@@ -252,6 +246,10 @@ bool KnobRenderer::renderVerticalFilmstrip(
     }
 
     Graphics g(&bitmap);
+    if (g.GetLastStatus() != Ok) {
+        return false;
+    }
+
     g.Clear(Gdiplus::Color(0, 0, 0, 0));
 
     for (int i = 0; i < options.frameCount; ++i) {
