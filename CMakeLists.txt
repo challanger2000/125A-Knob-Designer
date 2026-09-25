@@ -14,6 +14,8 @@ add_executable(125A_Knob_Designer
     src/HardwareRenderer.h
     src/FaderRenderer.cpp
     src/FaderRenderer.h
+    src/MeterRenderer.cpp
+    src/MeterRenderer.h
 )
 
 target_compile_features(125A_Knob_Designer PRIVATE cxx_std_17)

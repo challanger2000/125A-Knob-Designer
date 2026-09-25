@@ -41,6 +41,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path published\mixengine\knobs | Out-Null
           New-Item -ItemType Directory -Force -Path published\mixengine\hardware | Out-Null
           New-Item -ItemType Directory -Force -Path published\mixengine\faders | Out-Null
+          New-Item -ItemType Directory -Force -Path published\mixengine\meters | Out-Null
           New-Item -ItemType Directory -Force -Path published\general\knobs | Out-Null
 
           Get-ChildItem exports -Filter "125A_MixEngine_Analog_*.png" |
@@ -58,13 +59,16 @@ jobs:
           Get-ChildItem exports -Filter "125A_MixEngine_Fader_*.png" |
             Copy-Item -Destination published\mixengine\faders
 
+          Get-ChildItem exports -Filter "125A_MixEngine_VU_Meter_*.png" |
+            Copy-Item -Destination published\mixengine\meters
+
           Get-ChildItem exports -Filter *.png |
             Where-Object { $_.Name -notlike "125A_MixEngine_*" } |
             Copy-Item -Destination published\general\knobs
 
           $all = Get-ChildItem published -Recurse -Filter *.png
-          if ($all.Count -ne 56) {
-            throw "Expected 56 categorized PNG assets, found $($all.Count)."
+          if ($all.Count -ne 60) {
+            throw "Expected 60 categorized PNG assets, found $($all.Count)."
           }
 
       - name: Publish generated asset branch
@@ -87,6 +91,7 @@ jobs:
           - `assets/mixengine/knobs/` — MixEngine Analog S/M/L
           - `assets/mixengine/hardware/` — LEDs, button, toggle, rocker
           - `assets/mixengine/faders/` — MixEngine fader filmstrips
+          - `assets/mixengine/meters/` — MixEngine analog VU meter filmstrips
           - `assets/general/knobs/` — reusable general knob families
 
           Multi-resolution assets are generated at 1x / 1.5x / 2x / 3x.

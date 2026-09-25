@@ -105,3 +105,17 @@ The asset system now includes a procedural MixEngine vertical fader with:
 - rectangular filmstrip cells rather than forcing faders into square knob cells
 
 Generated assets are published automatically to the `generated-assets-v0.1.0` branch so other chats and plugin repositories can consume the PNGs directly from GitHub.
+
+
+## Meter renderer
+
+The asset system now includes a procedural analog MixEngine VU meter with:
+
+- cream analog face
+- calibrated arc and red-zone ticks
+- moving analog needle across 128 deterministic frames
+- dark metal frame and subtle glass reflection
+- fixed geometry across the complete filmstrip
+- multi-resolution export at 1x / 1.5x / 2x / 3x
+
+Published meter filmstrips are available under `assets/mixengine/meters/` on the generated-assets branch.
