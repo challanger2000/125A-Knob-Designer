@@ -66,6 +66,23 @@ RectF square(float cx, float cy, float half) {
     return RectF(cx - half, cy - half, half * 2.0f, half * 2.0f);
 }
 
+void buildRoundedRect(
+    GraphicsPath& path,
+    float x,
+    float y,
+    float w,
+    float h,
+    float radius) {
+
+    path.Reset();
+    const float d = radius * 2.0f;
+    path.AddArc(x, y, d, d, 180.0f, 90.0f);
+    path.AddArc(x + w - d, y, d, d, 270.0f, 90.0f);
+    path.AddArc(x + w - d, y + h - d, d, d, 0.0f, 90.0f);
+    path.AddArc(x, y + h - d, d, d, 90.0f, 90.0f);
+    path.CloseFigure();
+}
+
 void setup(Graphics& g) {
     g.SetSmoothingMode(SmoothingModeAntiAlias);
     g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
@@ -128,37 +145,65 @@ void drawPushButton(
 
     const bool pressed = state >= 2;
     const bool hover = state == 1;
-    const float yShift = pressed ? half * 0.055f : 0.0f;
-    const float outer = half * 0.43f;
-    const float face = half * (pressed ? 0.32f : 0.34f);
+
+    const float w = half * 1.48f;
+    const float h = half * 0.78f;
+    const float x = cx - w * 0.5f;
+    const float y = cy - h * 0.5f + (pressed ? half * 0.035f : 0.0f);
+    const float r = std::max(2.0f, half * 0.10f);
+
+    GraphicsPath shadowPath;
+    buildRoundedRect(
+        shadowPath,
+        x,
+        y + half * 0.07f,
+        w,
+        h,
+        r);
 
     SolidBrush shadow(gc(s.shadow));
-    g.FillEllipse(&shadow,
-                  RectF(cx - outer, cy - outer + half * 0.08f,
-                        outer * 2.0f, outer * 2.0f));
+    g.FillPath(&shadow, &shadowPath);
 
+    GraphicsPath bezelPath;
+    buildRoundedRect(bezelPath, x, y, w, h, r);
     LinearGradientBrush bezel(
-        PointF(cx, cy - outer), PointF(cx, cy + outer),
-        gc(s.metalTop), gc(s.metalBottom));
-    g.FillEllipse(&bezel, RectF(cx - outer, cy - outer, outer * 2.0f, outer * 2.0f));
+        PointF(cx, y),
+        PointF(cx, y + h),
+        gc(s.metalTop),
+        gc(s.metalBottom));
+    g.FillPath(&bezel, &bezelPath);
+
+    const float inset = half * 0.075f;
+    GraphicsPath facePath;
+    buildRoundedRect(
+        facePath,
+        x + inset,
+        y + inset,
+        w - inset * 2.0f,
+        h - inset * 2.0f,
+        std::max(1.5f, r - inset * 0.4f));
 
     LinearGradientBrush faceBrush(
-        PointF(cx, cy - face + yShift),
-        PointF(cx, cy + face + yShift),
-        hover ? Gdiplus::Color(255, 92, 97, 101) : gc(s.faceTop),
-        pressed ? Gdiplus::Color(255, 7, 8, 10) : gc(s.faceBottom));
-    g.FillEllipse(&faceBrush,
-                  RectF(cx - face, cy - face + yShift, face * 2.0f, face * 2.0f));
+        PointF(cx, y + inset),
+        PointF(cx, y + h - inset),
+        hover ? Gdiplus::Color(255, 64, 72, 79) : gc(s.faceTop),
+        pressed ? Gdiplus::Color(255, 10, 12, 15) : gc(s.faceBottom));
+    g.FillPath(&faceBrush, &facePath);
 
-    Pen rim(Gdiplus::Color(190, 0, 0, 0), std::max(1.0f, half * 0.032f));
-    g.DrawEllipse(&rim, RectF(cx - face, cy - face + yShift, face * 2.0f, face * 2.0f));
+    Pen edge(
+        Gdiplus::Color(220, 3, 5, 7),
+        std::max(0.8f, half * 0.025f));
+    g.DrawPath(&edge, &bezelPath);
 
     if (!pressed) {
         Pen hi(
-            hover ? Gdiplus::Color(175, 255, 255, 255) : gc(s.highlight),
-            std::max(0.8f, half * (hover ? 0.036f : 0.025f)));
-        g.DrawArc(&hi, RectF(cx - face * 0.86f, cy - face * 0.86f + yShift,
-                            face * 1.72f, face * 1.72f), 205.0f, 105.0f);
+            hover ? Gdiplus::Color(120, 220, 230, 238)
+                  : Gdiplus::Color(64, 220, 230, 238),
+            std::max(0.7f, half * 0.018f));
+        g.DrawLine(
+            &hi,
+            PointF(x + r, y + inset),
+            PointF(x + w - r, y + inset));
     }
 }
 
@@ -309,6 +354,11 @@ std::vector<HardwareAssetStyle> HardwareRenderer::builtInStyles() {
     button.kind = HardwareAssetKind::PushButton;
     button.preferredCellSize = 64;
     button.stateCount = 3;
+    button.metalTop = {255, 68, 78, 88};
+    button.metalBottom = {255, 19, 24, 29};
+    button.faceTop = {255, 41, 49, 57};
+    button.faceBottom = {255, 13, 17, 21};
+    button.highlight = {82, 220, 230, 238};
 
     HardwareAssetStyle toggle;
     toggle.name = L"MixEngine Toggle";
@@ -316,6 +366,11 @@ std::vector<HardwareAssetStyle> HardwareRenderer::builtInStyles() {
     toggle.kind = HardwareAssetKind::ToggleSwitch;
     toggle.preferredCellSize = 64;
     toggle.stateCount = 2;
+    toggle.metalTop = {255, 68, 78, 88};
+    toggle.metalBottom = {255, 19, 24, 29};
+    toggle.faceTop = {255, 41, 49, 57};
+    toggle.faceBottom = {255, 13, 17, 21};
+    toggle.highlight = {82, 220, 230, 238};
 
     HardwareAssetStyle rocker = toggle;
     rocker.name = L"MixEngine Rocker";

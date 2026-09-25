@@ -191,10 +191,10 @@ void drawFrame(
     // Warm metal accent ring.
     if (style.drawAccentRing) {
         const float r = half * (style.bodyRadius + 0.030f);
-        Pen accentDark(Gdiplus::Color(210, 54, 43, 29), std::max(3.0f, 5.8f * scale));
+        Pen accentDark(Gdiplus::Color(180, 40, 33, 25), std::max(2.0f, 3.6f * scale));
         g.DrawEllipse(&accentDark, centeredCircle(cx, cy, r));
 
-        Pen accent(gdipColor(style.accentRing), std::max(1.0f, 2.4f * scale));
+        Pen accent(gdipColor(style.accentRing), std::max(0.8f, 1.45f * scale));
         g.DrawArc(&accent, centeredCircle(cx, cy, r), 205.0f, 118.0f);
         g.DrawArc(&accent, centeredCircle(cx, cy, r), 328.0f, 76.0f);
     }
@@ -213,7 +213,7 @@ void drawFrame(
             drawKnurling(g, cx, cy, half, style, scale);
         }
 
-        Pen hiPen(gdipColor(style.highlight), std::max(1.0f, size * 0.018f));
+        Pen hiPen(gdipColor(style.highlight), std::max(0.8f, size * 0.010f));
         const RectF hiRect = centeredCircle(cx, cy, r * 0.90f);
         g.DrawArc(&hiPen, hiRect, 205.0f, 112.0f);
 
@@ -306,29 +306,30 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
         {static_cast<std::uint8_t>(isLarge ? 120 : 100), 226, 232, 238},
         {255, 224, 54, 43},
         {255, 27, 29, 31},
-        isLarge ? 5.5f : (isSmall ? 3.0f : 4.5f),
-        isLarge ? 1.035f : 1.025f,
-        isLarge ? 0.475f : (isSmall ? 0.430f : 0.458f),
-        isLarge ? 0.340f : (isSmall ? 0.355f : 0.350f),
-        isSmall ? 0.095f : 0.080f,
-        isLarge ? 0.300f : (isSmall ? 0.292f : 0.302f),
-        isLarge ? 3.45f : (isSmall ? 2.7f : 3.05f),
+        isLarge ? 4.2f : (isSmall ? 2.5f : 3.4f),
+        isLarge ? 1.025f : 1.018f,
+        isLarge ? 0.445f : (isSmall ? 0.405f : 0.425f),
+        isLarge ? 0.365f : (isSmall ? 0.345f : 0.355f),
+        isSmall ? 0.105f : 0.095f,
+        isLarge ? 0.315f : (isSmall ? 0.300f : 0.308f),
+        isLarge ? 3.1f : (isSmall ? 2.5f : 2.8f),
         true
     };
 
     s.accentRing = isLarge
-        ? Color{255, 186, 161, 116}
-        : Color{255, 172, 145, 101};
-    s.scaleTick = {245, 232, 222, 204};
+        ? Color{255, 154, 126, 78}
+        : Color{255, 143, 116, 72};
+    s.scaleTick = {220, 194, 188, 176};
     s.knurlHighlight = {82, 182, 188, 194};
     s.knurlShadow = {165, 0, 0, 0};
     s.pointerTip = {255, 243, 224, 183};
     s.drawAccentRing = true;
-    // Small utility controls stay cleaner at tiny display sizes.
-    s.drawScaleTicks = !isSmall;
-    s.drawKnurling = !isSmall;
-    s.drawPointerTip = !isSmall;
-    s.drawBrushedBezel = !isSmall;
+    // MixEngine V3 uses a restrained console-style control family.
+    // Scales belong to the panel layout, not to the knob artwork itself.
+    s.drawScaleTicks = false;
+    s.drawKnurling = false;
+    s.drawPointerTip = false;
+    s.drawBrushedBezel = false;
     s.preferredCellSize = isSmall ? 64 : (isLarge ? 128 : 96);
     s.tickCount = isLarge ? 15 : (isSmall ? 9 : 13);
     s.geometry.safeAreaRatio = isSmall ? 0.88f : 0.92f;

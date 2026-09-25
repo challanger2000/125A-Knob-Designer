@@ -101,7 +101,7 @@ void drawMeterFrame(
     SolidBrush shadow(gc(s.shadow));
     g.FillRectangle(
         &shadow,
-        RectF(x + 2.0f * scale, y + 3.0f * scale, fw, fh));
+        RectF(x + 1.5f * scale, y + 2.0f * scale, fw, fh));
 
     LinearGradientBrush frame(
         PointF(x, y), PointF(x, y + fh),
@@ -112,7 +112,7 @@ void drawMeterFrame(
              std::max(1.0f, 1.1f * scale));
     g.DrawRectangle(&edge, RectF(x, y, fw, fh));
 
-    const float inset = std::max(5.0f * scale, w * 0.045f);
+    const float inset = std::max(4.0f * scale, w * 0.034f);
     const RectF faceRect(
         x + inset,
         y + inset,
@@ -226,9 +226,18 @@ std::vector<MeterStyle> MeterRenderer::builtInStyles() {
     MeterStyle vu;
     vu.name = L"MixEngine VU Meter";
     vu.preferredWidth = 160;
-    vu.preferredHeight = 96;
+    vu.preferredHeight = 92;
     vu.frameCount = 128;
-    vu.geometry.safeAreaRatio = 0.94f;
+    vu.geometry.safeAreaRatio = 0.92f;
+    vu.frameTop = {255, 55, 65, 74};
+    vu.frameBottom = {255, 13, 18, 23};
+    vu.faceTop = {255, 225, 215, 188};
+    vu.faceBottom = {255, 188, 174, 143};
+    vu.scale = {255, 48, 45, 40};
+    vu.redZone = {255, 162, 49, 42};
+    vu.needle = {255, 48, 42, 36};
+    vu.glass = {28, 255, 255, 255};
+    vu.shadow = {95, 0, 0, 0};
     return {vu};
 }
 
