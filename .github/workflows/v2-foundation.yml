@@ -70,7 +70,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path package-v2 | Out-Null
-          Copy-Item designer-v2/web/src-tauri/target/release/125a-gui-designer.exe package-v2/125A_GUI_Designer_v0.2.0.exe
+          Copy-Item designer-v2/web/src-tauri/target/release/gui_designer_125a.exe package-v2/125A_GUI_Designer_v0.2.0.exe
           Copy-Item designer-v2/README.md package-v2/README-v0.2.0.md
           Copy-Item THIRD_PARTY_LICENSES/vstgui-edit-MIT.txt package-v2/vstgui-edit-MIT.txt
       - name: Upload Windows desktop build
