@@ -61,15 +61,21 @@ private:
     ULONG_PTR token_ {0};
 };
 
-GraphicsPath roundedRectPath(float x, float y, float w, float h, float radius) {
-    GraphicsPath path;
+void buildRoundedRectPath(
+    GraphicsPath& path,
+    float x,
+    float y,
+    float w,
+    float h,
+    float radius) {
+
+    path.Reset();
     const float d = radius * 2.0f;
     path.AddArc(x, y, d, d, 180.0f, 90.0f);
     path.AddArc(x + w - d, y, d, d, 270.0f, 90.0f);
     path.AddArc(x + w - d, y + h - d, d, d, 0.0f, 90.0f);
     path.AddArc(x, y + h - d, d, d, 90.0f, 90.0f);
     path.CloseFigure();
-    return path;
 }
 
 void drawFaderFrame(
@@ -142,11 +148,14 @@ void drawFaderFrame(
     const float radius = std::max(2.0f, 3.0f * scale);
 
     SolidBrush shadow(gc(s.shadow));
-    auto shadowPath = roundedRectPath(
+    GraphicsPath shadowPath;
+    buildRoundedRectPath(
+        shadowPath,
         x, y + 2.0f * scale, capW, capH, radius);
     g.FillPath(&shadow, &shadowPath);
 
-    auto capPath = roundedRectPath(x, y, capW, capH, radius);
+    GraphicsPath capPath;
+    buildRoundedRectPath(capPath, x, y, capW, capH, radius);
     LinearGradientBrush cap(
         PointF(cx, y),
         PointF(cx, y + capH),
