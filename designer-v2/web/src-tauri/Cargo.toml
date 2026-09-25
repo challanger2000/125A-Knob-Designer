@@ -1,5 +1,5 @@
 [package]
-name = "125a-gui-designer"
+name = "gui_designer_125a"
 version = "0.2.0"
 description = "125A GUI Designer"
 authors = ["125A Systems"]
