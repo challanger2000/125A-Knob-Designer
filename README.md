@@ -9,8 +9,9 @@ The project is intentionally renderer-first: before building a large editor, the
 - Windows x64
 - Native C++17
 - Procedural rendering — no copied third-party artwork
-- Five built-in 125A knob families
+- Built-in 125A knob families including MixEngine Analog S/M/L
 - 128-frame vertical PNG filmstrip export
+- Automatic multi-resolution export at 1x / 1.5x / 2x / 3x
 - Configurable cell size and frame count
 - VSTGUI-oriented output
 - Future editor will use the exact same rendering core
@@ -56,7 +57,7 @@ Example:
 .\125A_Knob_Designer.exe exports 128 128
 ```
 
-This creates five vertical PNG filmstrips in the selected directory.
+Without an explicit cell size, each style is exported at its native base size plus 1.5x, 2x and 3x variants. Supplying a cell size keeps single-resolution CLI behavior for targeted tests.
 
 ## Development policy
 
