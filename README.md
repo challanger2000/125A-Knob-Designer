@@ -119,3 +119,22 @@ The asset system now includes a procedural analog MixEngine VU meter with:
 - multi-resolution export at 1x / 1.5x / 2x / 3x
 
 Published meter filmstrips are available under `assets/mixengine/meters/` on the generated-assets branch.
+
+
+## Windows application
+
+The project builds two Windows x64 executables:
+
+- `125A_Knob_Designer.exe` — deterministic CLI renderer for CI, automation and other chats.
+- `125A_GUI_Asset_Designer.exe` — native Windows application for manual use.
+
+The GUI application provides:
+
+- asset category selection
+- preset selection
+- 1x / 1.5x / 2x / 3x resolution preview
+- frame/state scrubber
+- live rendered preview using the same renderer core as CI
+- one-click export of all four resolution variants to `exports-gui`
+
+The GUI intentionally shares the exact renderer implementation with the automated workflow so manually created assets and CI-generated assets remain consistent.

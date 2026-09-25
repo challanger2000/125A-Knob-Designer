@@ -46,5 +46,6 @@ jobs:
           name: 125A-Knob-Designer-v0.1.0-preview
           path: |
             build/Release/125A_Knob_Designer.exe
+            build/Release/125A_GUI_Asset_Designer.exe
             exports/*.png
           if-no-files-found: error

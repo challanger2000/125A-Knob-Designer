@@ -453,7 +453,7 @@ void createControls(HWND window) {
 
     makeStatic(L"Asset-Typ", 24, 28, 260, 20);
     gApp.category = CreateWindowExW(
-        0, WC_COMBOBOXW, L"",
+        0, L"COMBOBOX", L"",
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
         24, 50, 270, 200,
         window,
@@ -462,7 +462,7 @@ void createControls(HWND window) {
 
     makeStatic(L"Preset", 24, 92, 260, 20);
     gApp.preset = CreateWindowExW(
-        0, WC_COMBOBOXW, L"",
+        0, L"COMBOBOX", L"",
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
         24, 114, 270, 260,
         window,
@@ -471,7 +471,7 @@ void createControls(HWND window) {
 
     makeStatic(L"Auflösung", 24, 156, 260, 20);
     gApp.scale = CreateWindowExW(
-        0, WC_COMBOBOXW, L"",
+        0, L"COMBOBOX", L"",
         WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST,
         24, 178, 270, 200,
         window,
