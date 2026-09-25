@@ -324,7 +324,7 @@ KnobStyle makeMixEngineAnalog(MixEngineKnobSize variant) {
     // Small utility controls stay cleaner at tiny display sizes.
     s.drawScaleTicks = !isSmall;
     s.drawKnurling = !isSmall;
-    s.drawPointerTip = true;
+    s.drawPointerTip = !isSmall;
     s.drawBrushedBezel = !isSmall;
     s.preferredCellSize = isSmall ? 64 : (isLarge ? 128 : 96);
     s.tickCount = isLarge ? 15 : (isSmall ? 9 : 13);
