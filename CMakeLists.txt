@@ -50,5 +50,5 @@ target_compile_definitions(
 target_link_libraries(125A_GUI_Asset_Designer PRIVATE gdiplus comctl32)
 
 if(MSVC)
-    target_compile_options(125A_GUI_Asset_Designer PRIVATE /W4 /permissive-)
+    target_compile_options(125A_GUI_Asset_Designer PRIVATE /W4 /permissive- /utf-8)
 endif()
