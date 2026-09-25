@@ -1,0 +1,16 @@
+{
+  "name": "125a-gui-designer-v2-web",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "three": "0.182.0"
+  },
+  "devDependencies": {
+    "vite": "7.3.1"
+  }
+}
