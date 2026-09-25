@@ -1,4 +1,4 @@
-# 125A Knob Designer
+# 125A GUI Asset Designer
 
 **125A Systems tool for designing and exporting high-quality VSTGUI knob filmstrips and reusable UI assets.**
 
@@ -64,3 +64,16 @@ Without an explicit cell size, each style is exported at its native base size pl
 Read [START-HERE.md](START-HERE.md) before changing the project.
 
 JKnobMan may be studied as a workflow/reference application, but this project does **not** copy its source code, presets or artwork. Rendering and asset designs are implemented independently for 125A Systems.
+
+
+## Hardware asset foundation
+
+The renderer now also produces deterministic multi-resolution GUI hardware assets:
+
+- MixEngine LED Red (off/on)
+- MixEngine LED Amber (off/on)
+- MixEngine Push Button (normal/hover/pressed)
+- MixEngine Toggle (off/on)
+- MixEngine Rocker (off/on)
+
+These assets use the same procedural material/light/shadow approach as the knob renderer and export at 1x / 1.5x / 2x / 3x. The architecture keeps rendering independent from the future Windows editor so CI, other chats and the GUI can all use the same renderer.
