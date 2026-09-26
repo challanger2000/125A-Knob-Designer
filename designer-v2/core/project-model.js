@@ -68,7 +68,8 @@ function mergeExpertLighting(base, expert={}) {
   return {
     azimuth: clamp(Number.isFinite(expert.azimuth) ? expert.azimuth : base.azimuth, 0, 360),
     elevation: clamp(Number.isFinite(expert.elevation) ? expert.elevation : base.elevation, 0, 90),
-    aoStrength: clamp(Number.isFinite(expert.aoStrength) ? expert.aoStrength : base.aoStrength, 0, 100)
+    aoStrength: clamp(Number.isFinite(expert.aoStrength) ? expert.aoStrength : base.aoStrength, 0, 100),
+    intensity: clamp(Number.isFinite(expert.intensity) ? expert.intensity : 100, 25, 200)
   };
 }
 
