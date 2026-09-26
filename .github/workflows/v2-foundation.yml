@@ -31,6 +31,9 @@ jobs:
       - name: Run filmstrip detector self-test
         shell: pwsh
         run: node designer-v2/core/filmstrip-detect.selftest.js
+      - name: Run design presets self-test
+        shell: pwsh
+        run: node designer-v2/core/design-presets.selftest.js
 
   simple-mode-web:
     runs-on: windows-2022
