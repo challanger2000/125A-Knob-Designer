@@ -80,3 +80,11 @@ lit.design.expert={...(lit.design.expert||{}),material:{shininess:111}};
 const litMapped=toRendererDesign(lit);
 assert(litMapped.lighting.intensity===175,'light intensity mapping failed');
 assert(litMapped.layers[0].material.shininess===111,'gloss mapping failed');
+
+const lightingControls=structuredClone(sample);
+lightingControls.lighting.expert={...(lightingControls.lighting.expert||{}),azimuth:123,elevation:67,aoStrength:44,intensity:135};
+const lc=toRendererDesign(lightingControls).lighting;
+assert(lc.azimuth===123,'azimuth mapping failed');
+assert(lc.elevation===67,'elevation mapping failed');
+assert(lc.aoStrength===44,'shadow mapping failed');
+assert(lc.intensity===135,'intensity mapping failed');
