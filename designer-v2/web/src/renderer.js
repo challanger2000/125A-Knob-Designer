@@ -265,8 +265,10 @@ export class KnobPreviewRenderer {
     );
 
     const ao = Math.max(0, Math.min(100, d.lighting.aoStrength)) / 100;
-    this.hemi.intensity = 1.25 - ao * 0.65;
-    this.key.intensity = 2.4 + ao * 1.9;
+    const lightScale = Math.max(0.25, Math.min(2, (d.lighting.intensity ?? 100) / 100));
+    this.hemi.intensity = (1.25 - ao * 0.65) * lightScale;
+    this.key.intensity = (2.4 + ao * 1.9) * lightScale;
+    this.rim.intensity = 1.0 * Math.sqrt(lightScale);
 
     const previewAngle = (project.output.startAngle + project.output.endAngle) * 0.5;
     this.group.rotation.y = THREE.MathUtils.degToRad(-previewAngle);
