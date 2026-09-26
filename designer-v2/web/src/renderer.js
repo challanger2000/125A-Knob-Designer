@@ -9,19 +9,83 @@ function makeMaterial(m) {
   const type = m.type;
   let metalness = 0;
   let roughness = 0.7;
-  if (type === 'metallic') { metalness = 0.9; roughness = 0.28; }
-  if (type === 'brushed') { metalness = 0.85; roughness = 0.42; }
-  if (type === 'matte') { metalness = 0.05; roughness = 0.88; }
+  if (type === 'metallic') { metalness = 0.96; roughness = 0.22; }
+  if (type === 'brushed') { metalness = 0.9; roughness = 0.34; }
+  if (type === 'matte') { metalness = 0.03; roughness = 0.9; }
   if (type === 'solid') { metalness = 0.0; roughness = 0.55; }
 
   const shininessInfluence = Math.max(0, Math.min(1, (m.shininess ?? 32) / 128));
-  roughness = Math.max(0.08, Math.min(0.98, roughness * (1.15 - shininessInfluence * 0.45)));
+  const reflectivity = Math.max(0, Math.min(1, (m.reflectivity ?? 30) / 100));
+  roughness = Math.max(0.045, Math.min(0.98, roughness * (1.18 - shininessInfluence * 0.5)));
 
-  return new THREE.MeshStandardMaterial({
+  const material = new THREE.MeshPhysicalMaterial({
     color: hexToCss(m.color),
     metalness,
-    roughness
+    roughness,
+    clearcoat: type === 'metallic' ? 0.75 * reflectivity : type === 'solid' ? 0.12 : 0.03,
+    clearcoatRoughness: type === 'metallic' ? Math.max(0.04, roughness * 0.45) : roughness,
+    reflectivity: Math.max(0.04, reflectivity)
   });
+
+  if (type === 'brushed') {
+    material.anisotropy = Math.max(0.15, Math.min(1, (m.brushIntensity ?? 30) / 55));
+    material.anisotropyRotation = m.brushDirection === 'linear' ? Math.PI / 2 : 0;
+  }
+  return material;
+}
+
+function makeRoundedGeometry(topRadius, bottomRadius, height, bevelRadius) {
+  const half = height / 2;
+  const bevel = Math.max(0.01, Math.min(height * 0.22, Math.min(topRadius, bottomRadius) * 0.22, bevelRadius));
+  const points = [
+    new THREE.Vector2(0, -half),
+    new THREE.Vector2(Math.max(0.01, bottomRadius - bevel), -half),
+    new THREE.Vector2(bottomRadius, -half + bevel),
+    new THREE.Vector2(topRadius, half - bevel),
+    new THREE.Vector2(Math.max(0.01, topRadius - bevel), half),
+    new THREE.Vector2(0, half)
+  ];
+  return new THREE.LatheGeometry(points, 128);
+}
+
+function addSideDetails(group, layer, topRadius, bottomRadius, height, material) {
+  const detail = layer.geometry.sideDetail || 'smooth';
+  if (detail === 'smooth') return;
+
+  if (detail === 'grooved') {
+    const radius = Math.max(topRadius, bottomRadius) * 1.005;
+    const tube = Math.max(0.018, radius * 0.018);
+    for (const offset of [-0.24, 0, 0.24]) {
+      const torus = new THREE.Mesh(
+        new THREE.TorusGeometry(radius, tube, 10, 96),
+        material
+      );
+      torus.rotation.x = Math.PI / 2;
+      torus.position.y = offset * height;
+      torus.castShadow = true;
+      group.add(torus);
+    }
+    return;
+  }
+
+  if (detail === 'knurled') {
+    const ribs = 32;
+    const radius = Math.max(topRadius, bottomRadius) * 1.015;
+    const ribWidth = Math.max(0.025, radius * 0.032);
+    const ribDepth = Math.max(0.025, radius * 0.025);
+    const ribHeight = height * 0.68;
+    for (let i = 0; i < ribs; i++) {
+      const a = (i / ribs) * Math.PI * 2;
+      const rib = new THREE.Mesh(
+        new THREE.BoxGeometry(ribWidth, ribHeight, ribDepth),
+        material
+      );
+      rib.position.set(Math.sin(a) * radius, 0, Math.cos(a) * radius);
+      rib.rotation.y = a;
+      rib.castShadow = true;
+      group.add(rib);
+    }
+  }
 }
 
 function makeLayer(layer) {
@@ -33,11 +97,16 @@ function makeLayer(layer) {
   if (layer.geometry.skirtStyle === 'tapered') bottomRadius *= 1.12;
   if (layer.geometry.skirtStyle === 'angled') bottomRadius *= 0.9;
 
-  const g = new THREE.CylinderGeometry(topRadius, bottomRadius, Math.max(0.18, h * 1.45), 96, 1, false);
-  const mesh = new THREE.Mesh(g, makeMaterial(layer.material));
+  const height = Math.max(0.18, h * 1.45);
+  const bevel = Math.max(0, (layer.geometry.bevelRadius || 0) / 100 * 1.2);
+  const material = makeMaterial(layer.material);
+  const group = new THREE.Group();
+  const mesh = new THREE.Mesh(makeRoundedGeometry(topRadius, bottomRadius, height, bevel), material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
-  return mesh;
+  group.add(mesh);
+  addSideDetails(group, layer, topRadius, bottomRadius, height, material);
+  return group;
 }
 
 function makeIndicator(indicator, topRadius) {
