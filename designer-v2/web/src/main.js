@@ -2,6 +2,7 @@ import './style.css';
 import { KnobPreviewRenderer } from './renderer.js';
 import { SIMPLE_OPTIONS } from '../../core/project-model.js';
 import { detectFilmstripGeometry } from '../../core/filmstrip-detect.js';
+import { applyDesignPreset, listDesignPresets } from '../../core/design-presets.js';
 
 const app = document.querySelector('#app');
 
@@ -69,6 +70,17 @@ app.innerHTML = `
       <label>Name
         <input id="name" type="text" value="${project.name}">
       </label>
+      <section class="section">
+        <h2>Schnellstart</h2>
+        <div class="row">
+          <label>Design-Preset
+            <select id="designPreset"></select>
+          </label>
+          <label>Anwenden
+            <button id="applyPreset" type="button">Preset laden</button>
+          </label>
+        </div>
+      </section>
 
       <section class="section">
         <h2>1 · Form</h2>
@@ -221,6 +233,13 @@ $('lighting').value = project.lighting.preset;
 $('indicator').value = project.design.indicator.type;
 
 const preview = new KnobPreviewRenderer($('preview'));
+
+for (const preset of listDesignPresets()) {
+  const option = document.createElement('option');
+  option.value = preset.id;
+  option.textContent = preset.name;
+  $('designPreset').appendChild(option);
+}
 
 function normalizeImportedProject(input) {
   if (!input || input.format !== '125A-GUI' || !input.design || !input.lighting || !input.output) {
@@ -420,6 +439,19 @@ function downloadBlob(blob, fileName) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+
+$('applyPreset').addEventListener('click', () => {
+  stopPreviewPlayback();
+  try {
+    applyDesignPreset(project, $('designPreset').value);
+    applyProjectToControls();
+    syncAndRender();
+    $('status').textContent = `Preset geladen · ${$('designPreset').selectedOptions[0]?.textContent || ''}`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Preset konnte nicht geladen werden';
+  }
+});
 
 $('exportPng').addEventListener('click', async () => {
   syncAndRender();
