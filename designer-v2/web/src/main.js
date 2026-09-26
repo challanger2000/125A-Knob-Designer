@@ -166,6 +166,7 @@ app.innerHTML = `
 
       <div class="actions">
         <button id="exportPng" class="primary" type="button">Filmstrip PNG exportieren</button>
+        <button id="exportScales" type="button">1× / 1.5× / 2× / 3× exportieren</button>
         <button id="centerQa" type="button">Center-/Wobble-QA</button>
         <button id="load" type="button">Projekt öffnen</button>
         <input id="loadFile" type="file" accept=".125agui,.json,.125agui.json,application/json" hidden>
@@ -188,6 +189,14 @@ app.innerHTML = `
         <label>Vorschau drehen
           <input id="angle" type="range" min="-135" max="135" value="0">
         </label>
+        <div class="row">
+          <label>Frame <span id="frameOut">64 / 128</span>
+            <input id="framePreview" type="range" min="0" max="127" value="63">
+          </label>
+          <label>Abspielen
+            <button id="playPreview" type="button">▶ Vorschau</button>
+          </label>
+        </div>
         <p class="hint">Der Einfach-Modus zeigt absichtlich nur verständliche Entscheidungen. Technische Material-, Geometrie- und Lichtwerte bleiben intern und sind später im Expertenmodus erreichbar.</p>
       </div>
     </section>
@@ -302,6 +311,10 @@ function syncAndRender() {
   project.output.layout = $('layout').value;
   project.output.supersample = Number($('supersample').value);
   $('lenOut').textContent = String(project.design.indicator.length);
+  const frameMax = Math.max(1, project.output.frameCount - 1);
+  $('framePreview').max = String(frameMax);
+  if (Number($('framePreview').value) > frameMax) $('framePreview').value = String(frameMax);
+  updateFramePreview(false);
   preview.update(project);
   preview.setPreviewAngle(Number($('angle').value));
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
@@ -311,7 +324,55 @@ for (const id of ['name','shape','capEnabled','sideDetail','material','color','l
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
-$('angle').addEventListener('input', () => preview.setPreviewAngle(Number($('angle').value)));
+let previewTimer = null;
+
+function angleForFrame(index) {
+  const count = Math.max(2, project.output.frameCount);
+  const i = Math.max(0, Math.min(count - 1, Number(index) || 0));
+  const t = i / (count - 1);
+  return project.output.startAngle + (project.output.endAngle - project.output.startAngle) * t;
+}
+
+function updateFramePreview(render=true) {
+  const frame = Math.max(0, Math.min(project.output.frameCount - 1, Number($('framePreview').value) || 0));
+  $('frameOut').textContent = `${frame + 1} / ${project.output.frameCount}`;
+  const angle = angleForFrame(frame);
+  $('angle').value = String(angle);
+  if (render) preview.setPreviewAngle(angle);
+}
+
+function stopPreviewPlayback() {
+  if (previewTimer !== null) {
+    clearInterval(previewTimer);
+    previewTimer = null;
+  }
+  $('playPreview').textContent = '▶ Vorschau';
+}
+
+$('angle').addEventListener('input', () => {
+  stopPreviewPlayback();
+  preview.setPreviewAngle(Number($('angle').value));
+});
+
+$('framePreview').addEventListener('input', () => {
+  stopPreviewPlayback();
+  updateFramePreview(true);
+});
+
+$('playPreview').addEventListener('click', () => {
+  if (previewTimer !== null) {
+    stopPreviewPlayback();
+    return;
+  }
+  $('playPreview').textContent = '■ Stop';
+  previewTimer = setInterval(() => {
+    const max = Math.max(1, project.output.frameCount - 1);
+    let next = Number($('framePreview').value) + 1;
+    if (next > max) next = 0;
+    $('framePreview').value = String(next);
+    updateFramePreview(true);
+  }, 50);
+});
 
 function safeFileName(value) {
   return (value || '125A-Knob')
@@ -349,6 +410,48 @@ $('exportPng').addEventListener('click', async () => {
     button.disabled = false;
     button.textContent = oldText;
     preview.setPreviewAngle(Number($('angle').value));
+  }
+});
+
+$('exportScales').addEventListener('click', async () => {
+  syncAndRender();
+  stopPreviewPlayback();
+  const button = $('exportScales');
+  button.disabled = true;
+  const originalWidth = project.output.frameWidth;
+  const originalHeight = project.output.frameHeight;
+  const originalSizeValue = $('size').value;
+  const scales = Array.isArray(project.output.scaleExports) && project.output.scaleExports.length
+    ? project.output.scaleExports : [1, 1.5, 2, 3];
+
+  try {
+    const name = safeFileName(project.name);
+    for (let i = 0; i < scales.length; i++) {
+      const scale = Number(scales[i]);
+      if (!Number.isFinite(scale) || scale <= 0 || scale > 4) continue;
+      const width = Math.max(16, Math.round(originalWidth * scale));
+      const height = Math.max(16, Math.round(originalHeight * scale));
+      project.output.frameWidth = width;
+      project.output.frameHeight = height;
+      $('status').textContent = `Mehrfach-Export ${i + 1} / ${scales.length} · ${scale}×`;
+      const blob = await preview.exportFilmstrip(project, (done, total) => {
+        $('status').textContent = `Mehrfach-Export ${scale}× · ${done} / ${total} Frames`;
+      });
+      downloadBlob(blob, `${name}_${width}px_${project.output.frameCount}f_${project.output.layout}_scale-${scale}x.png`);
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+    $('status').textContent = `Mehrfach-Export fertig · ${scales.length} Größen`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Mehrfach-Export fehlgeschlagen';
+    alert(error.message || 'Mehrfach-Export fehlgeschlagen.');
+  } finally {
+    project.output.frameWidth = originalWidth;
+    project.output.frameHeight = originalHeight;
+    setSelectValue($('size'), originalSizeValue, ' px');
+    button.disabled = false;
+    preview.update(project);
+    updateFramePreview(true);
   }
 });
 
@@ -454,6 +557,8 @@ $('reset').addEventListener('click', () => {
   $('layout').value = 'vertical';
   $('supersample').value = '2';
   $('angle').value = '0';
+  $('framePreview').value = '63';
+  stopPreviewPlayback();
   syncAndRender();
 });
 
