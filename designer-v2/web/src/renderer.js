@@ -178,6 +178,7 @@ export class KnobPreviewRenderer {
     this.camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
     this.camera.position.set(0, 7.4, 7.4);
     this.camera.lookAt(0, 0.25, 0);
+    this.previewZoom = 1;
 
     this.group = new THREE.Group();
     this.scene.add(this.group);
@@ -280,6 +281,15 @@ export class KnobPreviewRenderer {
     this.render();
   }
 
+  setPreviewZoom(percent) {
+    const p = Math.max(40, Math.min(200, Number(percent) || 100));
+    this.previewZoom = p / 100;
+    this.camera.zoom = this.previewZoom;
+    this.camera.updateProjectionMatrix();
+    this.render();
+    return Math.round(p);
+  }
+
   resize() {
     const rect = this.canvas.getBoundingClientRect();
     const w = Math.max(320, Math.floor(rect.width));
@@ -353,6 +363,7 @@ export class KnobPreviewRenderer {
 
     const oldPixelRatio = this.renderer.getPixelRatio();
     const oldBackground = this.scene.background;
+    const oldCameraZoom = this.camera.zoom;
     const oldFloorVisible = this.floor.visible;
     const oldRotation = this.group.rotation.y;
     const rect = this.canvas.getBoundingClientRect();
@@ -371,6 +382,7 @@ export class KnobPreviewRenderer {
       this.renderer.setPixelRatio(1);
       this.renderer.setSize(frameWidth * supersample, frameHeight * supersample, false);
       this.camera.aspect = frameWidth / frameHeight;
+      this.camera.zoom = 1;
       this.camera.updateProjectionMatrix();
       this.scene.background = null;
       this.floor.visible = false;
@@ -405,6 +417,7 @@ export class KnobPreviewRenderer {
       this.renderer.setPixelRatio(oldPixelRatio);
       this.renderer.setSize(restoreWidth, restoreHeight, false);
       this.camera.aspect = restoreWidth / restoreHeight;
+      this.camera.zoom = oldCameraZoom;
       this.camera.updateProjectionMatrix();
       this.render();
     }
@@ -415,6 +428,7 @@ export class KnobPreviewRenderer {
     const supersample = 2;
     const oldPixelRatio = this.renderer.getPixelRatio();
     const oldBackground = this.scene.background;
+    const oldCameraZoom = this.camera.zoom;
     const oldFloorVisible = this.floor.visible;
     const oldRotation = this.group.rotation.y;
     const oldIndicatorVisible = this.indicatorMesh ? this.indicatorMesh.visible : null;
@@ -435,6 +449,7 @@ export class KnobPreviewRenderer {
       this.renderer.setPixelRatio(1);
       this.renderer.setSize(frameWidth * supersample, frameHeight * supersample, false);
       this.camera.aspect = frameWidth / frameHeight;
+      this.camera.zoom = 1;
       this.camera.updateProjectionMatrix();
       this.scene.background = null;
       this.floor.visible = false;

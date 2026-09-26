@@ -226,9 +226,14 @@ app.innerHTML = `
         <canvas id="preview"></canvas>
       </div>
       <div>
-        <label>Vorschau drehen
-          <input id="angle" type="range" min="-135" max="135" value="0">
-        </label>
+        <div class="row">
+          <label>Vorschau drehen
+            <input id="angle" type="range" min="-135" max="135" value="0">
+          </label>
+          <label>Zoom <span id="zoomOut">100</span> %
+            <input id="previewZoom" type="range" min="40" max="200" step="5" value="100">
+          </label>
+        </div>
         <div class="row">
           <label>Frame <span id="frameOut">64 / 128</span>
             <input id="framePreview" type="range" min="0" max="127" value="63">
@@ -486,6 +491,21 @@ $('angle').addEventListener('input', () => {
   preview.setPreviewAngle(Number($('angle').value));
 });
 
+function setPreviewZoom(value) {
+  const zoom = preview.setPreviewZoom(value);
+  $('previewZoom').value = String(zoom);
+  $('zoomOut').textContent = String(zoom);
+}
+
+$('previewZoom').addEventListener('input', () => setPreviewZoom($('previewZoom').value));
+
+$('preview').addEventListener('wheel', event => {
+  event.preventDefault();
+  const current = Number($('previewZoom').value) || 100;
+  const step = event.deltaY < 0 ? 10 : -10;
+  setPreviewZoom(current + step);
+}, { passive: false });
+
 $('framePreview').addEventListener('input', () => {
   stopPreviewPlayback();
   updateFramePreview(true);
@@ -722,6 +742,8 @@ $('reset').addEventListener('click', () => {
   $('layout').value = 'vertical';
   $('supersample').value = '2';
   $('angle').value = '0';
+  $('previewZoom').value = '100';
+  setPreviewZoom(100);
   $('framePreview').value = '63';
   stopPreviewPlayback();
   syncAndRender(false);
@@ -730,4 +752,5 @@ $('reset').addEventListener('click', () => {
 
 applyProjectToControls();
 syncAndRender(false);
+setPreviewZoom(100);
 pushHistorySnapshot();
