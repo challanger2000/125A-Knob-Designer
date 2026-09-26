@@ -50,7 +50,8 @@
           "properties": {
             "azimuth": { "type": "number", "minimum": 0, "maximum": 360 },
             "elevation": { "type": "number", "minimum": 0, "maximum": 90 },
-            "aoStrength": { "type": "number", "minimum": 0, "maximum": 100 }
+            "aoStrength": { "type": "number", "minimum": 0, "maximum": 100 },
+            "intensity": { "type": "number", "minimum": 25, "maximum": 200 }
           },
           "additionalProperties": true
         }
