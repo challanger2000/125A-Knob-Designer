@@ -11,11 +11,16 @@ const labels = {
   tapered: 'Konisch',
   cylindrical: 'Zylindrisch',
   stepped: 'Gestuft',
+  domed: 'Gewölbt',
+  compact: 'Kompakt',
   'plastic-black': 'Schwarzer Kunststoff',
   'metal-dark': 'Dunkles Metall',
   aluminium: 'Aluminium',
   steel: 'Stahl',
   brass: 'Messing',
+  chrome: 'Chrom',
+  gold: 'Gold',
+  'soft-touch': 'Soft-Touch',
   rubber: 'Gummi',
   soft: 'Weich',
   neutral: 'Neutral',
@@ -70,6 +75,25 @@ app.innerHTML = `
         <label>Grundform
           <select id="shape">${options(SIMPLE_OPTIONS.shapes)}</select>
         </label>
+      </section>
+
+      <section class="section">
+        <h2>1b · Details</h2>
+        <div class="row">
+          <label>Kappe
+            <select id="capEnabled">
+              <option value="yes" selected>Mit Kappe</option>
+              <option value="no">Ohne Kappe</option>
+            </select>
+          </label>
+          <label>Griffstruktur
+            <select id="sideDetail">
+              <option value="smooth" selected>Glatt</option>
+              <option value="grooved">Rillen</option>
+              <option value="knurled">Gerändelt</option>
+            </select>
+          </label>
+        </div>
       </section>
 
       <section class="section">
@@ -241,6 +265,9 @@ function applyProjectToControls() {
   $('name').value = project.name;
   $('shape').value = project.design.shape;
   $('material').value = project.design.material;
+  $('capEnabled').value = project.design.expert?.capEnabled === false ? 'no' : 'yes';
+  $('sideDetail').value = ['smooth','grooved','knurled'].includes(project.design.expert?.sideDetail)
+    ? project.design.expert.sideDetail : 'smooth';
   $('color').value = project.design.baseColor.slice(0, 7);
   $('lighting').value = project.lighting.preset;
   $('indicator').value = project.design.indicator.type;
@@ -260,6 +287,9 @@ function syncAndRender() {
   project.name = $('name').value.trim() || '125A Knob';
   project.design.shape = $('shape').value;
   project.design.material = $('material').value;
+  project.design.expert = project.design.expert || {};
+  project.design.expert.capEnabled = $('capEnabled').value !== 'no';
+  project.design.expert.sideDetail = $('sideDetail').value;
   project.design.baseColor = $('color').value.toUpperCase() + 'FF';
   project.design.indicator.type = $('indicator').value;
   project.design.indicator.color = $('indicatorColor').value.toUpperCase() + 'FF';
@@ -277,7 +307,7 @@ function syncAndRender() {
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
 }
 
-for (const id of ['name','shape','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
+for (const id of ['name','shape','capEnabled','sideDetail','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
@@ -412,6 +442,8 @@ $('save').addEventListener('click', () => {
 $('reset').addEventListener('click', () => {
   $('shape').value = 'studio';
   $('material').value = 'metal-dark';
+  $('capEnabled').value = 'yes';
+  $('sideDetail').value = 'smooth';
   $('color').value = '#242a31';
   $('lighting').value = 'neutral';
   $('indicator').value = 'line';
