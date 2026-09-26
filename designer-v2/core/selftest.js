@@ -46,10 +46,12 @@ const mid=calculateFrameAngle(sample,63.5);
 assert(Math.abs(mid)<1e-9,'midpoint angle wrong');
 
 assert(SIMPLE_OPTIONS.shapes.includes('stepped'),'simple shape list incomplete');
+assert(SIMPLE_OPTIONS.shapes.includes('domed') && SIMPLE_OPTIONS.shapes.includes('compact'),'new shape presets missing');
 assert(SIMPLE_OPTIONS.materials.includes('brass'),'simple material list incomplete');
+assert(SIMPLE_OPTIONS.materials.includes('chrome') && SIMPLE_OPTIONS.materials.includes('soft-touch'),'new material presets missing');
 assert(SIMPLE_OPTIONS.lighting.includes('dramatic'),'simple lighting list incomplete');
 
-const variants=['plastic-black','metal-dark','aluminium','steel','brass','rubber'];
+const variants=['plastic-black','metal-dark','aluminium','steel','brass','chrome','gold','soft-touch','rubber'];
 for(const material of variants){
   const p=structuredClone(sample);
   p.design.material=material;
@@ -58,3 +60,9 @@ for(const material of variants){
 }
 
 console.log('125A shared project -> renderer adapter self-test: PASS');
+
+const detailed=structuredClone(sample);
+detailed.design.expert={...(detailed.design.expert||{}),capEnabled:false,sideDetail:'knurled'};
+const detailMapped=toRendererDesign(detailed);
+assert(!detailMapped.layers.some(x=>x.name==='Cap'),'cap disable mapping failed');
+assert(detailMapped.layers.some(x=>x.geometry.sideDetail==='knurled'),'side detail mapping failed');
