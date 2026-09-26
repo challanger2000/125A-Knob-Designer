@@ -28,6 +28,9 @@ jobs:
       - name: Run shared renderer-adapter self-test
         shell: pwsh
         run: node designer-v2/core/selftest.js
+      - name: Run filmstrip detector self-test
+        shell: pwsh
+        run: node designer-v2/core/filmstrip-detect.selftest.js
 
   simple-mode-web:
     runs-on: windows-2022
