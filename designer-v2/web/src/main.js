@@ -1,6 +1,7 @@
 import './style.css';
 import { KnobPreviewRenderer } from './renderer.js';
 import { SIMPLE_OPTIONS } from '../../core/project-model.js';
+import { detectFilmstripGeometry } from '../../core/filmstrip-detect.js';
 
 const app = document.querySelector('#app');
 
@@ -144,6 +145,8 @@ app.innerHTML = `
         <button id="centerQa" type="button">Center-/Wobble-QA</button>
         <button id="load" type="button">Projekt öffnen</button>
         <input id="loadFile" type="file" accept=".125agui,.json,.125agui.json,application/json" hidden>
+        <button id="analyzeStrip" type="button">Filmstrip analysieren</button>
+        <input id="stripFile" type="file" accept="image/png" hidden>
         <button id="save" type="button">Projekt speichern</button>
         <button id="reset" type="button">Zurücksetzen</button>
       </div>
@@ -359,6 +362,44 @@ $('loadFile').addEventListener('change', async () => {
     console.error(error);
     $('status').textContent = error.message || 'Projekt konnte nicht geladen werden';
     alert(error.message || 'Projekt konnte nicht geladen werden.');
+  }
+});
+
+$('analyzeStrip').addEventListener('click', () => {
+  $('stripFile').value = '';
+  $('stripFile').click();
+});
+
+$('stripFile').addEventListener('change', async () => {
+  const file = $('stripFile').files?.[0];
+  if (!file) return;
+
+  try {
+    $('status').textContent = 'Filmstrip wird analysiert …';
+    const bitmap = await createImageBitmap(file);
+    const result = detectFilmstripGeometry(bitmap.width, bitmap.height);
+    bitmap.close?.();
+
+    if (!result.best) {
+      throw new Error('Filmstrip-Geometrie konnte nicht sicher erkannt werden.');
+    }
+
+    const b = result.best;
+    setSelectValue($('size'), Math.round(b.frameWidth), ' px');
+    setSelectValue($('frames'), Math.round(b.frameCount));
+    $('layout').value = b.layout;
+    syncAndRender();
+
+    const label = b.layout === 'vertical' ? 'vertikal'
+      : b.layout === 'horizontal' ? 'horizontal'
+      : 'Sprite-Grid';
+
+    $('status').textContent =
+      `Filmstrip erkannt · ${b.frameWidth}×${b.frameHeight}px · ${b.frameCount} Frames · ${label} · ${b.confidence}`;
+  } catch (error) {
+    console.error(error);
+    $('status').textContent = error.message || 'Filmstrip-Analyse fehlgeschlagen';
+    alert(error.message || 'Filmstrip-Analyse fehlgeschlagen.');
   }
 });
 
