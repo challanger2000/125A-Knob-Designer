@@ -11,6 +11,8 @@ assert(d.layers.length===2,'studio shape should map to two layers');
 assert(d.layers[0].material.type==='metallic','metal-dark should map to metallic');
 assert(d.layers[0].material.color==='#242A31FF','project base color must override material preset');
 assert(d.indicator?.type==='line','indicator mapping failed');
+assert(d.accentRing?.enabled===true,'accent ring should default to enabled');
+assert(d.accentRing?.color==='#657A8FFF','accent ring color mapping failed');
 assert(d.lighting.azimuth===315 && d.lighting.elevation===58 && d.lighting.aoStrength===28,'expert lighting overrides must win');
 assert(d.output.frameCount===128,'frame count mapping failed');
 assert(d.output.sweepAngle===270,'sweep angle mapping failed');
@@ -66,3 +68,7 @@ detailed.design.expert={...(detailed.design.expert||{}),capEnabled:false,sideDet
 const detailMapped=toRendererDesign(detailed);
 assert(!detailMapped.layers.some(x=>x.name==='Cap'),'cap disable mapping failed');
 assert(detailMapped.layers.some(x=>x.geometry.sideDetail==='knurled'),'side detail mapping failed');
+
+const noAccent=structuredClone(sample);
+noAccent.design.expert={...(noAccent.design.expert||{}),accentRing:false};
+assert(toRendererDesign(noAccent).accentRing.enabled===false,'accent ring disable mapping failed');
