@@ -27,6 +27,18 @@ const SHAPE_PRESETS = {
       { name: 'Body', diameter: 84, height: 52, bevelRadius: 5, skirtStyle: 'cylindrical' },
       { name: 'Cap', diameter: 70, height: 18, bevelRadius: 4, skirtStyle: 'cylindrical' }
     ]
+  },
+  domed: {
+    layers: [
+      { name: 'Body', diameter: 100, height: 76, bevelRadius: 14, skirtStyle: 'tapered' },
+      { name: 'Cap', diameter: 78, height: 24, bevelRadius: 10, skirtStyle: 'cylindrical' }
+    ]
+  },
+  compact: {
+    layers: [
+      { name: 'Body', diameter: 100, height: 48, bevelRadius: 9, skirtStyle: 'cylindrical' },
+      { name: 'Cap', diameter: 74, height: 14, bevelRadius: 7, skirtStyle: 'cylindrical' }
+    ]
   }
 };
 
@@ -36,6 +48,9 @@ const MATERIAL_PRESETS = {
   aluminium: { type: 'brushed', color: '#B7BDC3FF', shininess: 72, reflectivity: 58, brushDirection: 'radial', brushIntensity: 36 },
   steel: { type: 'brushed', color: '#69727AFF', shininess: 62, reflectivity: 50, brushDirection: 'linear', brushIntensity: 28 },
   brass: { type: 'metallic', color: '#9A7B3FFF', shininess: 74, reflectivity: 48, brushDirection: 'radial', brushIntensity: 0 },
+  chrome: { type: 'metallic', color: '#D7DBDEFF', shininess: 118, reflectivity: 92, brushDirection: 'radial', brushIntensity: 0 },
+  gold: { type: 'metallic', color: '#C49A3AFF', shininess: 102, reflectivity: 78, brushDirection: 'radial', brushIntensity: 0 },
+  'soft-touch': { type: 'matte', color: '#303338FF', shininess: 4, reflectivity: 2, brushDirection: 'radial', brushIntensity: 0 },
   rubber: { type: 'matte', color: '#252729FF', shininess: 2, reflectivity: 1, brushDirection: 'radial', brushIntensity: 0 }
 };
 
@@ -73,7 +88,12 @@ function layersForProject(project) {
   const shape = clone(SHAPE_PRESETS[project.design.shape] ?? SHAPE_PRESETS.studio);
   const material = materialForProject(project);
   const overrides = Array.isArray(project.design.expert?.layers) ? project.design.expert.layers : [];
-  return shape.layers.map((g,index) => {
+  const capEnabled = project.design.expert?.capEnabled !== false;
+  const sideDetail = ['smooth','grooved','knurled'].includes(project.design.expert?.sideDetail)
+    ? project.design.expert.sideDetail : 'smooth';
+  return shape.layers
+    .filter(g => capEnabled || g.name !== 'Cap')
+    .map((g,index) => {
     const o = overrides[index] ?? {};
     return {
       id: `layer-${index+1}`,
@@ -82,7 +102,8 @@ function layersForProject(project) {
         diameter: clamp(Number.isFinite(o.diameter) ? o.diameter : g.diameter,10,100),
         height: clamp(Number.isFinite(o.height) ? o.height : g.height,10,100),
         bevelRadius: clamp(Number.isFinite(o.bevelRadius) ? o.bevelRadius : g.bevelRadius,0,20),
-        skirtStyle: ['cylindrical','tapered','angled'].includes(o.skirtStyle) ? o.skirtStyle : g.skirtStyle
+        skirtStyle: ['cylindrical','tapered','angled'].includes(o.skirtStyle) ? o.skirtStyle : g.skirtStyle,
+        sideDetail: o.sideDetail || (g.name === 'Body' ? sideDetail : 'smooth')
       },
       material: { ...material, ...(o.material ?? {}) }
     };
