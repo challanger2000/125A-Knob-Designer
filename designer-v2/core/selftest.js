@@ -14,6 +14,7 @@ assert(d.indicator?.type==='line','indicator mapping failed');
 assert(d.accentRing?.enabled===true,'accent ring should default to enabled');
 assert(d.accentRing?.color==='#657A8FFF','accent ring color mapping failed');
 assert(d.lighting.azimuth===315 && d.lighting.elevation===58 && d.lighting.aoStrength===28,'expert lighting overrides must win');
+assert(d.lighting.intensity===100,'default light intensity wrong');
 assert(d.output.frameCount===128,'frame count mapping failed');
 assert(d.output.sweepAngle===270,'sweep angle mapping failed');
 
@@ -72,3 +73,10 @@ assert(detailMapped.layers.some(x=>x.geometry.sideDetail==='knurled'),'side deta
 const noAccent=structuredClone(sample);
 noAccent.design.expert={...(noAccent.design.expert||{}),accentRing:false};
 assert(toRendererDesign(noAccent).accentRing.enabled===false,'accent ring disable mapping failed');
+
+const lit=structuredClone(sample);
+lit.lighting.expert={...(lit.lighting.expert||{}),intensity:175};
+lit.design.expert={...(lit.design.expert||{}),material:{shininess:111}};
+const litMapped=toRendererDesign(lit);
+assert(litMapped.lighting.intensity===175,'light intensity mapping failed');
+assert(litMapped.layers[0].material.shininess===111,'gloss mapping failed');
