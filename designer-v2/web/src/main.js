@@ -196,6 +196,8 @@ app.innerHTML = `
         <button id="analyzeStrip" type="button">Filmstrip analysieren</button>
         <input id="stripFile" type="file" accept="image/png" hidden>
         <button id="save" type="button">Projekt speichern</button>
+        <button id="undo" type="button" disabled>↶ Rückgängig</button>
+        <button id="redo" type="button" disabled>↷ Wiederholen</button>
         <button id="reset" type="button">Zurücksetzen</button>
       </div>
     </aside>
@@ -233,6 +235,55 @@ $('lighting').value = project.lighting.preset;
 $('indicator').value = project.design.indicator.type;
 
 const preview = new KnobPreviewRenderer($('preview'));
+
+const HISTORY_LIMIT = 60;
+let history = [];
+let historyIndex = -1;
+let historyTimer = null;
+let restoringHistory = false;
+
+function projectSnapshot() {
+  return JSON.stringify(project);
+}
+
+function updateHistoryButtons() {
+  $('undo').disabled = historyIndex <= 0;
+  $('redo').disabled = historyIndex < 0 || historyIndex >= history.length - 1;
+}
+
+function pushHistorySnapshot(snapshot = projectSnapshot()) {
+  if (restoringHistory) return;
+  if (historyIndex >= 0 && history[historyIndex] === snapshot) return;
+  history = history.slice(0, historyIndex + 1);
+  history.push(snapshot);
+  if (history.length > HISTORY_LIMIT) history.shift();
+  historyIndex = history.length - 1;
+  updateHistoryButtons();
+}
+
+function scheduleHistorySnapshot() {
+  if (restoringHistory) return;
+  clearTimeout(historyTimer);
+  historyTimer = setTimeout(() => pushHistorySnapshot(), 220);
+}
+
+function restoreHistory(index) {
+  if (index < 0 || index >= history.length) return;
+  clearTimeout(historyTimer);
+  restoringHistory = true;
+  try {
+    const restored = JSON.parse(history[index]);
+    Object.keys(project).forEach(key => delete project[key]);
+    Object.assign(project, restored);
+    historyIndex = index;
+    applyProjectToControls();
+    syncAndRender(false);
+    $('status').textContent = `Verlauf · Stand ${historyIndex + 1} / ${history.length}`;
+  } finally {
+    restoringHistory = false;
+    updateHistoryButtons();
+  }
+}
 
 for (const preset of listDesignPresets()) {
   const option = document.createElement('option');
@@ -329,7 +380,7 @@ function applyProjectToControls() {
   $('angle').value = String((project.output.startAngle + project.output.endAngle) * 0.5);
 }
 
-function syncAndRender() {
+function syncAndRender(recordHistory = true) {
   project.name = $('name').value.trim() || '125A Knob';
   project.design.shape = $('shape').value;
   project.design.material = $('material').value;
@@ -369,6 +420,7 @@ function syncAndRender() {
   preview.update(project);
   preview.setPreviewAngle(Number($('angle').value));
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
+  if (recordHistory) scheduleHistorySnapshot();
 }
 
 for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','material','color','lighting','lightAzimuth','lightElevation','lightIntensity','shadowStrength','gloss','indicator','indicatorColor','length','size','frames','layout','supersample']) {
@@ -445,7 +497,8 @@ $('applyPreset').addEventListener('click', () => {
   try {
     applyDesignPreset(project, $('designPreset').value);
     applyProjectToControls();
-    syncAndRender();
+    syncAndRender(false);
+    pushHistorySnapshot();
     $('status').textContent = `Preset geladen · ${$('designPreset').selectedOptions[0]?.textContent || ''}`;
   } catch (error) {
     console.error(error);
@@ -553,7 +606,8 @@ $('loadFile').addEventListener('change', async () => {
     Object.keys(project).forEach(key => delete project[key]);
     Object.assign(project, imported);
     applyProjectToControls();
-    syncAndRender();
+    syncAndRender(false);
+    pushHistorySnapshot();
     $('status').textContent = `Projekt geladen · ${project.name}`;
   } catch (error) {
     console.error(error);
@@ -600,6 +654,17 @@ $('stripFile').addEventListener('change', async () => {
   }
 });
 
+$('undo').addEventListener('click', () => restoreHistory(historyIndex - 1));
+$('redo').addEventListener('click', () => restoreHistory(historyIndex + 1));
+
+window.addEventListener('keydown', event => {
+  const key = event.key.toLowerCase();
+  if (!(event.ctrlKey || event.metaKey) || key !== 'z') return;
+  event.preventDefault();
+  if (event.shiftKey) restoreHistory(historyIndex + 1);
+  else restoreHistory(historyIndex - 1);
+});
+
 $('save').addEventListener('click', () => {
   syncAndRender();
   const blob = new Blob([JSON.stringify(project, null, 2) + '\n'], { type: 'application/json' });
@@ -630,8 +695,10 @@ $('reset').addEventListener('click', () => {
   $('angle').value = '0';
   $('framePreview').value = '63';
   stopPreviewPlayback();
-  syncAndRender();
+  syncAndRender(false);
+  pushHistorySnapshot();
 });
 
 applyProjectToControls();
-syncAndRender();
+syncAndRender(false);
+pushHistorySnapshot();
