@@ -292,6 +292,9 @@ function applyProjectToControls() {
   $('accentColor').value = (project.design.accentColor || '#657A8FFF').slice(0, 7);
   $('color').value = project.design.baseColor.slice(0, 7);
   $('lighting').value = project.lighting.preset;
+  $('lightAzimuth').value = String(project.lighting.expert?.azimuth ?? 315);
+  $('lightIntensity').value = String(project.lighting.expert?.intensity ?? 100);
+  $('gloss').value = String(project.design.expert?.material?.shininess ?? 82);
   $('indicator').value = project.design.indicator.type;
   $('indicatorColor').value = project.design.indicator.color.slice(0, 7);
   $('length').value = String(project.design.indicator.length);
@@ -319,6 +322,14 @@ function syncAndRender() {
   project.design.indicator.color = $('indicatorColor').value.toUpperCase() + 'FF';
   project.design.indicator.length = Number($('length').value);
   project.lighting.preset = $('lighting').value;
+  project.lighting.expert = project.lighting.expert || {};
+  project.lighting.expert.azimuth = Number($('lightAzimuth').value);
+  project.lighting.expert.intensity = Number($('lightIntensity').value);
+  project.design.expert.material = project.design.expert.material || {};
+  project.design.expert.material.shininess = Number($('gloss').value);
+  $('azimuthOut').textContent = String(project.lighting.expert.azimuth);
+  $('lightIntensityOut').textContent = String(project.lighting.expert.intensity);
+  $('glossOut').textContent = String(project.design.expert.material.shininess);
   const size = Number($('size').value);
   project.output.frameWidth = size;
   project.output.frameHeight = size;
@@ -335,7 +346,7 @@ function syncAndRender() {
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
 }
 
-for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
+for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','material','color','lighting','lightAzimuth','lightIntensity','gloss','indicator','indicatorColor','length','size','frames','layout','supersample']) {
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
@@ -566,6 +577,9 @@ $('reset').addEventListener('click', () => {
   $('accentColor').value = '#657a8f';
   $('color').value = '#242a31';
   $('lighting').value = 'neutral';
+  $('lightAzimuth').value = '315';
+  $('lightIntensity').value = '100';
+  $('gloss').value = '82';
   $('indicator').value = 'line';
   $('indicatorColor').value = '#e8eef4';
   $('length').value = '66';
