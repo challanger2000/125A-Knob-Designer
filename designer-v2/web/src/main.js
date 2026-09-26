@@ -134,6 +134,21 @@ app.innerHTML = `
         <label>Lichtstimmung
           <select id="lighting">${options(SIMPLE_OPTIONS.lighting)}</select>
         </label>
+        <label>Lichtrichtung <span id="azimuthOut">315</span>°
+          <input id="lightAzimuth" type="range" min="0" max="360" value="315">
+        </label>
+        <label>Lichthöhe <span id="elevationOut">48</span>°
+          <input id="lightElevation" type="range" min="5" max="90" value="48">
+        </label>
+        <label>Helligkeit <span id="lightIntensityOut">100</span> %
+          <input id="lightIntensity" type="range" min="25" max="200" value="100">
+        </label>
+        <label>Schatten <span id="shadowOut">36</span> %
+          <input id="shadowStrength" type="range" min="0" max="100" value="36">
+        </label>
+        <label>Glanz <span id="glossOut">82</span>
+          <input id="gloss" type="range" min="0" max="128" value="82">
+        </label>
       </section>
 
       <section class="section">
