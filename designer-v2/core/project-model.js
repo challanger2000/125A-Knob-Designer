@@ -139,6 +139,10 @@ export function toRendererDesign(project) {
     name: project.name || '125A Knob',
     layers: layersForProject(project),
     indicator: indicatorForProject(project),
+    accentRing: {
+      enabled: project.design.expert?.accentRing !== false,
+      color: project.design.accentColor || '#657A8FFF'
+    },
     lighting,
     output: {
       frameCount: project.output.frameCount,
