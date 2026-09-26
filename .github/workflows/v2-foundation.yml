@@ -34,6 +34,9 @@ jobs:
       - name: Run design presets self-test
         shell: pwsh
         run: node designer-v2/core/design-presets.selftest.js
+      - name: Run Simple Mode DOM contract test
+        shell: pwsh
+        run: node designer-v2/core/dom-contract.selftest.js
 
   simple-mode-web:
     runs-on: windows-2022

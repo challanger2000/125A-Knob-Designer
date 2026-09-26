@@ -1,6 +1,6 @@
 import './style.css';
 import { KnobPreviewRenderer } from './renderer.js';
-import { SIMPLE_OPTIONS } from '../../core/project-model.js';
+import { SIMPLE_OPTIONS, getLightingPresetDefaults, getMaterialPresetDefaults } from '../../core/project-model.js';
 import { detectFilmstripGeometry } from '../../core/filmstrip-detect.js';
 import { applyDesignPreset, listDesignPresets } from '../../core/design-presets.js';
 
@@ -438,10 +438,24 @@ function syncAndRender(recordHistory = true) {
   if (recordHistory) scheduleHistorySnapshot();
 }
 
-for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','material','color','lighting','lightAzimuth','lightElevation','lightIntensity','shadowStrength','gloss','indicator','indicatorColor','length','size','frames','layout','supersample']) {
+for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','color','lightAzimuth','lightElevation','lightIntensity','shadowStrength','gloss','indicator','indicatorColor','length','size','frames','layout','supersample']) {
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
+
+$('lighting').addEventListener('change', () => {
+  const preset = getLightingPresetDefaults($('lighting').value);
+  $('lightAzimuth').value = String(preset.azimuth);
+  $('lightElevation').value = String(preset.elevation);
+  $('shadowStrength').value = String(preset.aoStrength);
+  syncAndRender();
+});
+
+$('material').addEventListener('change', () => {
+  const preset = getMaterialPresetDefaults($('material').value);
+  $('gloss').value = String(preset.shininess);
+  syncAndRender();
+});
 let previewTimer = null;
 
 function angleForFrame(index) {

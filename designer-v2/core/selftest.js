@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { calculateFilmstripDimensions, calculateFrameAngle, validateExportPlan, SIMPLE_OPTIONS, toRendererDesign } from './project-model.js';
+import { getLightingPresetDefaults, getMaterialPresetDefaults, calculateFilmstripDimensions, calculateFrameAngle, validateExportPlan, SIMPLE_OPTIONS, toRendererDesign } from './project-model.js';
 
 const sample = JSON.parse(fs.readFileSync(path.resolve('designer-v2/examples/knob-dark-metal.125agui.json'),'utf8'));
 const d = toRendererDesign(sample);
@@ -88,3 +88,8 @@ assert(lc.azimuth===123,'azimuth mapping failed');
 assert(lc.elevation===67,'elevation mapping failed');
 assert(lc.aoStrength===44,'shadow mapping failed');
 assert(lc.intensity===135,'intensity mapping failed');
+
+const lightPreset = getLightingPresetDefaults('dramatic');
+assert(lightPreset.azimuth === 292 && lightPreset.elevation === 28 && lightPreset.aoStrength === 68, 'lighting preset defaults failed');
+const rubberPreset = getMaterialPresetDefaults('rubber');
+assert(rubberPreset.shininess === 2 && rubberPreset.reflectivity === 1, 'material preset defaults failed');

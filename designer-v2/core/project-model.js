@@ -200,6 +200,14 @@ export function calculateFrameAngle(project,index) {
   return project.output.startAngle + (project.output.endAngle-project.output.startAngle)*t;
 }
 
+export function getLightingPresetDefaults(name) {
+  return clone(LIGHTING_PRESETS[name] ?? LIGHTING_PRESETS.neutral);
+}
+
+export function getMaterialPresetDefaults(name) {
+  return clone(MATERIAL_PRESETS[name] ?? MATERIAL_PRESETS['plastic-black']);
+}
+
 export const SIMPLE_OPTIONS = Object.freeze({
   shapes:Object.keys(SHAPE_PRESETS),
   materials:Object.keys(MATERIAL_PRESETS),
