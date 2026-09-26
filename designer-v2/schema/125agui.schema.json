@@ -20,8 +20,8 @@
       "type": "object",
       "required": ["shape", "material", "baseColor", "indicator"],
       "properties": {
-        "shape": { "enum": ["studio", "flat", "tapered", "cylindrical", "stepped"] },
-        "material": { "enum": ["plastic-black", "metal-dark", "aluminium", "steel", "brass", "rubber"] },
+        "shape": { "enum": ["studio", "flat", "tapered", "cylindrical", "stepped", "domed", "compact"] },
+        "material": { "enum": ["plastic-black", "metal-dark", "aluminium", "steel", "brass", "chrome", "gold", "soft-touch", "rubber"] },
         "baseColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
         "accentColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
         "indicator": {
