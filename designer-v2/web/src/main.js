@@ -94,6 +94,17 @@ app.innerHTML = `
             </select>
           </label>
         </div>
+        <div class="row">
+          <label>Akzentring
+            <select id="accentRing">
+              <option value="yes" selected>An</option>
+              <option value="no">Aus</option>
+            </select>
+          </label>
+          <label>Ringfarbe
+            <input id="accentColor" type="color" value="#657a8f">
+          </label>
+        </div>
       </section>
 
       <section class="section">
@@ -277,6 +288,8 @@ function applyProjectToControls() {
   $('capEnabled').value = project.design.expert?.capEnabled === false ? 'no' : 'yes';
   $('sideDetail').value = ['smooth','grooved','knurled'].includes(project.design.expert?.sideDetail)
     ? project.design.expert.sideDetail : 'smooth';
+  $('accentRing').value = project.design.expert?.accentRing === false ? 'no' : 'yes';
+  $('accentColor').value = (project.design.accentColor || '#657A8FFF').slice(0, 7);
   $('color').value = project.design.baseColor.slice(0, 7);
   $('lighting').value = project.lighting.preset;
   $('indicator').value = project.design.indicator.type;
@@ -299,6 +312,8 @@ function syncAndRender() {
   project.design.expert = project.design.expert || {};
   project.design.expert.capEnabled = $('capEnabled').value !== 'no';
   project.design.expert.sideDetail = $('sideDetail').value;
+  project.design.expert.accentRing = $('accentRing').value !== 'no';
+  project.design.accentColor = $('accentColor').value.toUpperCase() + 'FF';
   project.design.baseColor = $('color').value.toUpperCase() + 'FF';
   project.design.indicator.type = $('indicator').value;
   project.design.indicator.color = $('indicatorColor').value.toUpperCase() + 'FF';
@@ -320,7 +335,7 @@ function syncAndRender() {
   $('status').textContent = `${labels[project.design.shape]} · ${labels[project.design.material]} · ${labels[project.lighting.preset]}`;
 }
 
-for (const id of ['name','shape','capEnabled','sideDetail','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
+for (const id of ['name','shape','capEnabled','sideDetail','accentRing','accentColor','material','color','lighting','indicator','indicatorColor','length','size','frames','layout','supersample']) {
   $(id).addEventListener('input', syncAndRender);
   $(id).addEventListener('change', syncAndRender);
 }
@@ -547,6 +562,8 @@ $('reset').addEventListener('click', () => {
   $('material').value = 'metal-dark';
   $('capEnabled').value = 'yes';
   $('sideDetail').value = 'smooth';
+  $('accentRing').value = 'yes';
+  $('accentColor').value = '#657a8f';
   $('color').value = '#242a31';
   $('lighting').value = 'neutral';
   $('indicator').value = 'line';
