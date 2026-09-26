@@ -18,9 +18,14 @@ if (!run(['validate', work]).includes('PASS:')) throw new Error('validate failed
 run(['set', work, 'output.frameCount', '64', '--in-place']);
 let p = JSON.parse(fs.readFileSync(work, 'utf8'));
 if (p.output.frameCount !== 64) throw new Error('set failed');
-run(['preset', work, 'industrial-steel', '--in-place']);
+run(['preset', work, 'industrial-black', '--in-place']);
 p = JSON.parse(fs.readFileSync(work, 'utf8'));
-if (p.design.material !== 'steel' || p.design.shape !== 'stepped') throw new Error('preset failed');
+if (p.design.material !== 'soft-touch' || p.design.shape !== 'stepped') throw new Error('preset failed');
 if (!run(['validate', work]).includes('PASS:')) throw new Error('post-edit validate failed');
+const presetList=run(['presets']);
+if (!presetList.includes('chrome-modern') || !presetList.includes('brushed-aluminium')) throw new Error('shared preset list failed');
+const inspected=JSON.parse(run(['inspect', work]));
+if (inspected.export.frameCount !== 64) throw new Error('inspect frame count failed');
+if (inspected.shape !== 'stepped') throw new Error('inspect shape failed');
 
 console.log('125A GUI Designer v0.2.0 foundation self-test: PASS');
