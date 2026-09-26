@@ -42,6 +42,7 @@
     },
     "lighting": {
       "type": "object",
+      "description": "Lighting preset plus optional expert direction, elevation, shadow/AO and intensity overrides.",
       "required": ["preset"],
       "properties": {
         "preset": { "enum": ["soft", "neutral", "contrast", "dramatic"] },
