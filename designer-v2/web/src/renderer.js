@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { toRendererDesign } from '../../core/project-model.js';
 
 function hexToCss(hex) {
@@ -109,6 +110,24 @@ function makeLayer(layer) {
   return group;
 }
 
+function makeAccentRing(accentRing, topRadius) {
+  if (!accentRing?.enabled) return null;
+  const material = new THREE.MeshPhysicalMaterial({
+    color: hexToCss(accentRing.color || '#657A8F'),
+    metalness: 0.92,
+    roughness: 0.2,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.12
+  });
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(Math.max(0.1, topRadius * 0.86), Math.max(0.018, topRadius * 0.025), 16, 128),
+    material
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.castShadow = true;
+  return ring;
+}
+
 function makeIndicator(indicator, topRadius) {
   if (!indicator?.enabled) return null;
   const color = hexToCss(indicator.material?.color || '#f0f0f0');
@@ -149,6 +168,12 @@ export class KnobPreviewRenderer {
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x11161c);
+
+    this.pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+    const roomEnvironment = new RoomEnvironment();
+    this.environmentTexture = this.pmremGenerator.fromScene(roomEnvironment, 0.04).texture;
+    this.scene.environment = this.environmentTexture;
+    roomEnvironment.dispose?.();
 
     this.camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
     this.camera.position.set(0, 7.4, 7.4);
@@ -216,6 +241,12 @@ export class KnobPreviewRenderer {
       topRadius = 1.75 * (layer.geometry.diameter / 100);
       this.group.add(mesh);
     });
+
+    const accentRing = makeAccentRing(d.accentRing, topRadius);
+    if (accentRing) {
+      accentRing.position.y = y + 0.025;
+      this.group.add(accentRing);
+    }
 
     const indicator = makeIndicator(d.indicator, topRadius);
     this.indicatorMesh = indicator || null;
@@ -452,6 +483,8 @@ export class KnobPreviewRenderer {
   dispose() {
     this.resizeObserver.disconnect();
     this.clearGroup();
+    this.environmentTexture?.dispose?.();
+    this.pmremGenerator?.dispose?.();
     this.renderer.dispose();
   }
 }
