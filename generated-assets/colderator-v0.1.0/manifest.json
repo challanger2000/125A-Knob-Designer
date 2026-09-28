@@ -1,0 +1,172 @@
+{
+  "generatedAt": "2026-09-28T08:17:51.501Z",
+  "renderer": "125A GUI Designer v0.2.0 / Three.js",
+  "visualIntent": "snow white / blue frost shimmer / shadow and ice ring separation",
+  "controls": {
+    "main": {
+      "source": "colderator-main.125agui.json",
+      "baseFrame": [
+        120,
+        120
+      ],
+      "frameCount": 128,
+      "startAngle": -135,
+      "endAngle": 135,
+      "centerQa": {
+        "driftX": 0,
+        "driftY": 0,
+        "maxDrift": 0,
+        "samples": 9,
+        "pass": true
+      },
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 120,
+          "frameHeight": 120,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 291609,
+          "file": "main_120px_128f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 150,
+          "frameHeight": 150,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 377661,
+          "file": "main_150px_128f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 180,
+          "frameHeight": 180,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 474416,
+          "file": "main_180px_128f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 240,
+          "frameHeight": 240,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 678081,
+          "file": "main_240px_128f_scale-2x.png"
+        }
+      ]
+    },
+    "character": {
+      "source": "colderator-character.125agui.json",
+      "baseFrame": [
+        88,
+        88
+      ],
+      "frameCount": 128,
+      "startAngle": -135,
+      "endAngle": 135,
+      "centerQa": {
+        "driftX": 0,
+        "driftY": 0,
+        "maxDrift": 0,
+        "samples": 9,
+        "pass": true
+      },
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 88,
+          "frameHeight": 88,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 247475,
+          "file": "character_88px_128f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 110,
+          "frameHeight": 110,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 332995,
+          "file": "character_110px_128f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 132,
+          "frameHeight": 132,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 427768,
+          "file": "character_132px_128f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 176,
+          "frameHeight": 176,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 592734,
+          "file": "character_176px_128f_scale-2x.png"
+        }
+      ]
+    },
+    "utility": {
+      "source": "colderator-utility.125agui.json",
+      "baseFrame": [
+        72,
+        72
+      ],
+      "frameCount": 128,
+      "startAngle": -135,
+      "endAngle": 135,
+      "centerQa": {
+        "driftX": 0,
+        "driftY": 0,
+        "maxDrift": 0,
+        "samples": 9,
+        "pass": true
+      },
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 72,
+          "frameHeight": 72,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 117781,
+          "file": "utility_72px_128f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 90,
+          "frameHeight": 90,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 188212,
+          "file": "utility_90px_128f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 108,
+          "frameHeight": 108,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 237429,
+          "file": "utility_108px_128f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 144,
+          "frameHeight": 144,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 341392,
+          "file": "utility_144px_128f_scale-2x.png"
+        }
+      ]
+    }
+  }
+}
