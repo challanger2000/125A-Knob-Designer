@@ -1,0 +1,55 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "Mechamorph Machine Selector",
+  "asset": {
+    "type": "knob"
+  },
+  "design": {
+    "shape": "stepped",
+    "material": "metal-dark",
+    "baseColor": "#262A2CFF",
+    "accentColor": "#8A8170FF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#E0D7C4FF",
+      "length": 79,
+      "width": 4
+    },
+    "expert": {
+      "capEnabled": true,
+      "sideDetail": "grooved",
+      "accentRing": true,
+      "indicatorRadialPosition": 80,
+      "material": {
+        "shininess": 72,
+        "reflectivity": 50
+      }
+    }
+  },
+  "lighting": {
+    "preset": "contrast",
+    "expert": {
+      "azimuth": 308,
+      "elevation": 42,
+      "aoStrength": 46,
+      "intensity": 104
+    }
+  },
+  "output": {
+    "frameWidth": 250,
+    "frameHeight": 250,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [
+      1,
+      1.5,
+      2,
+      3
+    ],
+    "supersample": 2
+  }
+}
