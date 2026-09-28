@@ -1,0 +1,198 @@
+{
+  "generatedAt": "2026-09-28T05:31:58.247Z",
+  "renderer": "125A GUI Designer v0.2.0 / Three.js",
+  "controls": {
+    "main": {
+      "source": "mechamorph-main.125agui.json",
+      "baseFrame": [
+        170,
+        170
+      ],
+      "frameCount": 96,
+      "startAngle": -135,
+      "endAngle": 135,
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 170,
+          "frameHeight": 170,
+          "frameCount": 96,
+          "layout": "vertical",
+          "bytes": 1789983,
+          "file": "main_170px_96f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 213,
+          "frameHeight": 213,
+          "frameCount": 96,
+          "layout": "vertical",
+          "bytes": 2554933,
+          "file": "main_213px_96f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 255,
+          "frameHeight": 255,
+          "frameCount": 96,
+          "layout": "vertical",
+          "bytes": 3406884,
+          "file": "main_255px_96f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 340,
+          "frameHeight": 340,
+          "frameCount": 96,
+          "layout": "vertical",
+          "bytes": 5373759,
+          "file": "main_340px_96f_scale-2x.png"
+        }
+      ]
+    },
+    "scale": {
+      "source": "mechamorph-scale.125agui.json",
+      "baseFrame": [
+        220,
+        220
+      ],
+      "frameCount": 72,
+      "startAngle": -135,
+      "endAngle": 135,
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 220,
+          "frameHeight": 220,
+          "frameCount": 72,
+          "layout": "vertical",
+          "bytes": 2022948,
+          "file": "scale_220px_72f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 275,
+          "frameHeight": 275,
+          "frameCount": 72,
+          "layout": "vertical",
+          "bytes": 2889861,
+          "file": "scale_275px_72f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 330,
+          "frameHeight": 330,
+          "frameCount": 72,
+          "layout": "vertical",
+          "bytes": 3848983,
+          "file": "scale_330px_72f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 440,
+          "frameHeight": 440,
+          "frameCount": 72,
+          "layout": "vertical",
+          "bytes": 6048462,
+          "file": "scale_440px_72f_scale-2x.png"
+        }
+      ]
+    },
+    "utility": {
+      "source": "mechamorph-utility.125agui.json",
+      "baseFrame": [
+        104,
+        104
+      ],
+      "frameCount": 128,
+      "startAngle": -135,
+      "endAngle": 135,
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 104,
+          "frameHeight": 104,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 1103040,
+          "file": "utility_104px_128f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 130,
+          "frameHeight": 130,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 1616674,
+          "file": "utility_130px_128f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 156,
+          "frameHeight": 156,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 2152806,
+          "file": "utility_156px_128f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 208,
+          "frameHeight": 208,
+          "frameCount": 128,
+          "layout": "vertical",
+          "bytes": 3453996,
+          "file": "utility_208px_128f_scale-2x.png"
+        }
+      ]
+    },
+    "machine": {
+      "source": "mechamorph-machine.125agui.json",
+      "baseFrame": [
+        250,
+        250
+      ],
+      "frameCount": 6,
+      "startAngle": -135,
+      "endAngle": 135,
+      "outputs": [
+        {
+          "scale": 1,
+          "frameWidth": 250,
+          "frameHeight": 250,
+          "frameCount": 6,
+          "layout": "vertical",
+          "bytes": 225385,
+          "file": "machine_250px_6f_scale-1x.png"
+        },
+        {
+          "scale": 1.25,
+          "frameWidth": 313,
+          "frameHeight": 313,
+          "frameCount": 6,
+          "layout": "vertical",
+          "bytes": 325103,
+          "file": "machine_313px_6f_scale-1p25x.png"
+        },
+        {
+          "scale": 1.5,
+          "frameWidth": 375,
+          "frameHeight": 375,
+          "frameCount": 6,
+          "layout": "vertical",
+          "bytes": 436232,
+          "file": "machine_375px_6f_scale-1p5x.png"
+        },
+        {
+          "scale": 2,
+          "frameWidth": 500,
+          "frameHeight": 500,
+          "frameCount": 6,
+          "layout": "vertical",
+          "bytes": 701957,
+          "file": "machine_500px_6f_scale-2x.png"
+        }
+      ]
+    }
+  }
+}
