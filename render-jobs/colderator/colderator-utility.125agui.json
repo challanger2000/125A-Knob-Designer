@@ -1,0 +1,65 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "Colderator Utility Snow",
+  "asset": { "type": "knob" },
+  "design": {
+    "shape": "flat",
+    "material": "aluminium",
+    "baseColor": "#F4F9FCFF",
+    "accentColor": "#BCDDEBFF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#4C7285FF",
+      "length": 55,
+      "width": 2.4
+    },
+    "expert": {
+      "capEnabled": true,
+      "sideDetail": "smooth",
+      "accentRing": true,
+      "indicatorRadialPosition": 74,
+      "material": {
+        "type": "solid",
+        "shininess": 26,
+        "reflectivity": 17,
+        "brushIntensity": 0
+      },
+      "layers": [
+        {
+          "name": "Utility Body",
+          "diameter": 100,
+          "height": 55,
+          "bevelRadius": 5,
+          "skirtStyle": "cylindrical",
+          "material": {
+            "type": "solid",
+            "color": "#F3F8FBFF",
+            "shininess": 24,
+            "reflectivity": 16
+          }
+        }
+      ]
+    }
+  },
+  "lighting": {
+    "preset": "soft",
+    "expert": {
+      "azimuth": 320,
+      "elevation": 60,
+      "aoStrength": 36,
+      "intensity": 108
+    }
+  },
+  "output": {
+    "frameWidth": 72,
+    "frameHeight": 72,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [1, 1.25, 1.5, 2],
+    "supersample": 2
+  }
+}

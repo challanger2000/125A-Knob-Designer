@@ -1,0 +1,78 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "Colderator Main Snow",
+  "asset": { "type": "knob" },
+  "design": {
+    "shape": "domed",
+    "material": "aluminium",
+    "baseColor": "#F7FBFDFF",
+    "accentColor": "#A9D3E7FF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#365F74FF",
+      "length": 67,
+      "width": 3.2
+    },
+    "expert": {
+      "capEnabled": true,
+      "sideDetail": "smooth",
+      "accentRing": true,
+      "indicatorRadialPosition": 73,
+      "material": {
+        "type": "solid",
+        "shininess": 36,
+        "reflectivity": 24,
+        "brushIntensity": 0
+      },
+      "layers": [
+        {
+          "name": "Snow Body",
+          "diameter": 100,
+          "height": 74,
+          "bevelRadius": 13,
+          "skirtStyle": "tapered",
+          "material": {
+            "type": "solid",
+            "color": "#F4F9FCFF",
+            "shininess": 26,
+            "reflectivity": 18
+          }
+        },
+        {
+          "name": "Ice Cap",
+          "diameter": 79,
+          "height": 22,
+          "bevelRadius": 10,
+          "skirtStyle": "cylindrical",
+          "material": {
+            "type": "solid",
+            "color": "#FCFEFFFF",
+            "shininess": 46,
+            "reflectivity": 30
+          }
+        }
+      ]
+    }
+  },
+  "lighting": {
+    "preset": "soft",
+    "expert": {
+      "azimuth": 318,
+      "elevation": 61,
+      "aoStrength": 31,
+      "intensity": 112
+    }
+  },
+  "output": {
+    "frameWidth": 120,
+    "frameHeight": 120,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [1, 1.25, 1.5, 2],
+    "supersample": 2
+  }
+}
