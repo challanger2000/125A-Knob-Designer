@@ -1,7 +1,7 @@
 {
   "format": "125A-GUI",
   "version": 1,
-  "name": "Mechamorph Machine Selector Low Profile",
+  "name": "Mechamorph Machine Six Position Selector",
   "asset": {
     "type": "knob"
   },
@@ -9,13 +9,13 @@
     "shape": "flat",
     "material": "metal-dark",
     "baseColor": "#191B1CFF",
-    "accentColor": "#918B80FF",
+    "accentColor": "#A49C8DFF",
     "indicator": {
       "enabled": true,
-      "type": "notch",
+      "type": "line",
       "color": "#E6DCC8FF",
-      "length": 72,
-      "width": 4
+      "length": 82,
+      "width": 5
     },
     "expert": {
       "capEnabled": false,
@@ -25,30 +25,31 @@
       "indicatorMetallic": false,
       "material": {
         "type": "brushed",
-        "shininess": 42,
-        "reflectivity": 28,
+        "shininess": 30,
+        "reflectivity": 18,
         "brushDirection": "radial",
         "brushIntensity": 22
       },
       "layers": [
         {
           "name": "Body",
-          "diameter": 88,
-          "height": 32,
-          "bevelRadius": 5,
+          "diameter": 90,
+          "height": 13,
+          "bevelRadius": 3,
           "skirtStyle": "cylindrical",
           "sideDetail": "grooved"
         }
       ]
-    }
+    },
+    "indicatorRadialPosition": 88
   },
   "lighting": {
     "preset": "neutral",
     "expert": {
       "azimuth": 306,
-      "elevation": 54,
-      "aoStrength": 36,
-      "intensity": 92
+      "elevation": 82,
+      "aoStrength": 18,
+      "intensity": 86
     }
   },
   "output": {

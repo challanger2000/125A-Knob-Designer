@@ -1,7 +1,7 @@
 {
   "format": "125A-GUI",
   "version": 1,
-  "name": "Mechamorph Scale Low Profile",
+  "name": "Mechamorph Scale Flat Top",
   "asset": {
     "type": "knob"
   },
@@ -14,8 +14,8 @@
       "enabled": true,
       "type": "line",
       "color": "#E6DCC8FF",
-      "length": 67,
-      "width": 3
+      "length": 72,
+      "width": 3.2
     },
     "expert": {
       "capEnabled": true,
@@ -25,8 +25,8 @@
       "indicatorMetallic": false,
       "material": {
         "type": "brushed",
-        "shininess": 46,
-        "reflectivity": 30,
+        "shininess": 36,
+        "reflectivity": 23,
         "brushDirection": "radial",
         "brushIntensity": 20
       },
@@ -34,16 +34,16 @@
         {
           "name": "Body",
           "diameter": 90,
-          "height": 34,
-          "bevelRadius": 6,
+          "height": 18,
+          "bevelRadius": 4,
           "skirtStyle": "cylindrical",
           "sideDetail": "knurled"
         },
         {
           "name": "Cap",
           "diameter": 74,
-          "height": 12,
-          "bevelRadius": 5,
+          "height": 6,
+          "bevelRadius": 3,
           "skirtStyle": "cylindrical",
           "sideDetail": "smooth"
         }
@@ -54,9 +54,9 @@
     "preset": "neutral",
     "expert": {
       "azimuth": 310,
-      "elevation": 56,
-      "aoStrength": 34,
-      "intensity": 92
+      "elevation": 76,
+      "aoStrength": 22,
+      "intensity": 88
     }
   },
   "output": {
