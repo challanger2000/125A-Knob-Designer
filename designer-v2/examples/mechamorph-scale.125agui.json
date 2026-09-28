@@ -40,15 +40,15 @@
   "output": {
     "frameWidth": 220,
     "frameHeight": 220,
-    "frameCount": 128,
+    "frameCount": 72,
     "startAngle": -135,
     "endAngle": 135,
     "layout": "vertical",
     "scaleExports": [
       1,
+      1.25,
       1.5,
-      2,
-      3
+      2
     ],
     "supersample": 2
   }
