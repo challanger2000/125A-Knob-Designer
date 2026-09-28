@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T08:17:51.501Z",
+  "generatedAt": "2026-09-28T08:25:58.893Z",
   "renderer": "125A GUI Designer v0.2.0 / Three.js",
   "visualIntent": "snow white / blue frost shimmer / shadow and ice ring separation",
   "controls": {
@@ -26,7 +26,7 @@
           "frameHeight": 120,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 291609,
+          "bytes": 421648,
           "file": "main_120px_128f_scale-1x.png"
         },
         {
@@ -35,7 +35,7 @@
           "frameHeight": 150,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 377661,
+          "bytes": 556753,
           "file": "main_150px_128f_scale-1p25x.png"
         },
         {
@@ -44,7 +44,7 @@
           "frameHeight": 180,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 474416,
+          "bytes": 698284,
           "file": "main_180px_128f_scale-1p5x.png"
         },
         {
@@ -53,7 +53,7 @@
           "frameHeight": 240,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 678081,
+          "bytes": 965476,
           "file": "main_240px_128f_scale-2x.png"
         }
       ]
@@ -81,7 +81,7 @@
           "frameHeight": 88,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 247475,
+          "bytes": 313783,
           "file": "character_88px_128f_scale-1x.png"
         },
         {
@@ -90,7 +90,7 @@
           "frameHeight": 110,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 332995,
+          "bytes": 436101,
           "file": "character_110px_128f_scale-1p25x.png"
         },
         {
@@ -99,7 +99,7 @@
           "frameHeight": 132,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 427768,
+          "bytes": 550237,
           "file": "character_132px_128f_scale-1p5x.png"
         },
         {
@@ -108,7 +108,7 @@
           "frameHeight": 176,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 592734,
+          "bytes": 814185,
           "file": "character_176px_128f_scale-2x.png"
         }
       ]
@@ -136,7 +136,7 @@
           "frameHeight": 72,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 117781,
+          "bytes": 122341,
           "file": "utility_72px_128f_scale-1x.png"
         },
         {
@@ -145,7 +145,7 @@
           "frameHeight": 90,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 188212,
+          "bytes": 193190,
           "file": "utility_90px_128f_scale-1p25x.png"
         },
         {
@@ -154,7 +154,7 @@
           "frameHeight": 108,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 237429,
+          "bytes": 238256,
           "file": "utility_108px_128f_scale-1p5x.png"
         },
         {
@@ -163,7 +163,7 @@
           "frameHeight": 144,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 341392,
+          "bytes": 336734,
           "file": "utility_144px_128f_scale-2x.png"
         }
       ]
