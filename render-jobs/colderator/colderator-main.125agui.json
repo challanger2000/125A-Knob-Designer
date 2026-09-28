@@ -32,8 +32,8 @@
         {
           "name": "Snow Body",
           "diameter": 100,
-          "height": 46,
-          "bevelRadius": 14,
+          "height": 20,
+          "bevelRadius": 9,
           "skirtStyle": "tapered",
           "material": {
             "type": "solid",
@@ -45,8 +45,8 @@
         {
           "name": "Ice Cap",
           "diameter": 82,
-          "height": 15,
-          "bevelRadius": 9,
+          "height": 7,
+          "bevelRadius": 5,
           "skirtStyle": "cylindrical",
           "material": {
             "type": "solid",
@@ -62,9 +62,9 @@
     "preset": "soft",
     "expert": {
       "azimuth": 318,
-      "elevation": 61,
-      "aoStrength": 22,
-      "intensity": 118
+      "elevation": 66,
+      "aoStrength": 9,
+      "intensity": 126
     }
   },
   "output": {

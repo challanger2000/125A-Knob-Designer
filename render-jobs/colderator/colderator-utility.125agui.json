@@ -32,8 +32,8 @@
         {
           "name": "Utility Body",
           "diameter": 100,
-          "height": 32,
-          "bevelRadius": 8,
+          "height": 16,
+          "bevelRadius": 6,
           "skirtStyle": "cylindrical",
           "material": {
             "type": "solid",
@@ -49,9 +49,9 @@
     "preset": "soft",
     "expert": {
       "azimuth": 320,
-      "elevation": 60,
-      "aoStrength": 25,
-      "intensity": 114
+      "elevation": 65,
+      "aoStrength": 10,
+      "intensity": 122
     }
   },
   "output": {
