@@ -6,33 +6,33 @@
     "type": "knob"
   },
   "design": {
-    "shape": "stepped",
+    "shape": "cylindrical",
     "material": "metal-dark",
-    "baseColor": "#262A2CFF",
-    "accentColor": "#8A8170FF",
+    "baseColor": "#202426FF",
+    "accentColor": "#7F786AFF",
     "indicator": {
       "enabled": true,
-      "type": "line",
+      "type": "notch",
       "color": "#E0D7C4FF",
-      "length": 79,
-      "width": 4
+      "length": 86,
+      "width": 6
     },
     "expert": {
       "capEnabled": true,
       "sideDetail": "grooved",
       "accentRing": true,
-      "indicatorRadialPosition": 80,
+      "indicatorRadialPosition": 84,
       "material": {
-        "shininess": 72,
-        "reflectivity": 50
+        "shininess": 58,
+        "reflectivity": 42
       }
     }
   },
   "lighting": {
     "preset": "contrast",
     "expert": {
-      "azimuth": 308,
-      "elevation": 42,
+      "azimuth": 300,
+      "elevation": 38,
       "aoStrength": 46,
       "intensity": 104
     }
