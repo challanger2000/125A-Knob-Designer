@@ -18,6 +18,25 @@ const PRESETS = {
     indicatorColor: '#E8EEF4FF',
     indicatorLength: 66
   },
+  'mechamorph-industrial': {
+    name: 'Mechamorph Industrial',
+    shape: 'stepped',
+    material: 'metal-dark',
+    baseColor: '#262A2CFF',
+    accentColor: '#8A8170FF',
+    capEnabled: true,
+    sideDetail: 'knurled',
+    accentRing: true,
+    lighting: 'contrast',
+    azimuth: 308,
+    elevation: 42,
+    intensity: 104,
+    shadow: 46,
+    gloss: 68,
+    indicator: 'line',
+    indicatorColor: '#E0D7C4FF',
+    indicatorLength: 72
+  },
   'industrial-black': {
     name: 'Industrial Black',
     shape: 'stepped',
