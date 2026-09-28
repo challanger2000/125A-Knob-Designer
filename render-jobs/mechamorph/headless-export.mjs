@@ -31,8 +31,12 @@ async function prepare(project){
     document.body.style.background='transparent';
     const canvas=document.createElement('canvas');
     canvas.id='headless-canvas';
-    canvas.style.width=p.output.frameWidth+'px';
-    canvas.style.height=p.output.frameHeight+'px';
+    canvas.style.setProperty('width',p.output.frameWidth+'px','important');
+    canvas.style.setProperty('height',p.output.frameHeight+'px','important');
+    canvas.style.setProperty('min-width','0','important');
+    canvas.style.setProperty('min-height','0','important');
+    canvas.style.setProperty('max-width','none','important');
+    canvas.style.setProperty('max-height','none','important');
     canvas.style.display='block';
     document.body.appendChild(canvas);
     const renderer=new KnobPreviewRenderer(canvas);
