@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T06:00:14.099Z",
+  "generatedAt": "2026-09-28T10:37:31.017Z",
   "renderer": "125A GUI Designer v0.2.0 / Three.js",
   "controls": {
     "main": {
@@ -18,7 +18,7 @@
           "frameHeight": 170,
           "frameCount": 96,
           "layout": "vertical",
-          "bytes": 1789983,
+          "bytes": 1646870,
           "file": "main_170px_96f_scale-1x.png"
         },
         {
@@ -27,7 +27,7 @@
           "frameHeight": 213,
           "frameCount": 96,
           "layout": "vertical",
-          "bytes": 2554933,
+          "bytes": 2395189,
           "file": "main_213px_96f_scale-1p25x.png"
         },
         {
@@ -36,7 +36,7 @@
           "frameHeight": 255,
           "frameCount": 96,
           "layout": "vertical",
-          "bytes": 3406884,
+          "bytes": 3210229,
           "file": "main_255px_96f_scale-1p5x.png"
         },
         {
@@ -45,7 +45,7 @@
           "frameHeight": 340,
           "frameCount": 96,
           "layout": "vertical",
-          "bytes": 5373759,
+          "bytes": 5105008,
           "file": "main_340px_96f_scale-2x.png"
         }
       ]
@@ -66,7 +66,7 @@
           "frameHeight": 220,
           "frameCount": 72,
           "layout": "vertical",
-          "bytes": 2022948,
+          "bytes": 1968217,
           "file": "scale_220px_72f_scale-1x.png"
         },
         {
@@ -75,7 +75,7 @@
           "frameHeight": 275,
           "frameCount": 72,
           "layout": "vertical",
-          "bytes": 2889861,
+          "bytes": 2831439,
           "file": "scale_275px_72f_scale-1p25x.png"
         },
         {
@@ -84,7 +84,7 @@
           "frameHeight": 330,
           "frameCount": 72,
           "layout": "vertical",
-          "bytes": 3848983,
+          "bytes": 3783608,
           "file": "scale_330px_72f_scale-1p5x.png"
         },
         {
@@ -93,7 +93,7 @@
           "frameHeight": 440,
           "frameCount": 72,
           "layout": "vertical",
-          "bytes": 6048462,
+          "bytes": 5942854,
           "file": "scale_440px_72f_scale-2x.png"
         }
       ]
@@ -114,7 +114,7 @@
           "frameHeight": 104,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 1103040,
+          "bytes": 772418,
           "file": "utility_104px_128f_scale-1x.png"
         },
         {
@@ -123,7 +123,7 @@
           "frameHeight": 130,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 1616674,
+          "bytes": 1114589,
           "file": "utility_130px_128f_scale-1p25x.png"
         },
         {
@@ -132,7 +132,7 @@
           "frameHeight": 156,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 2152806,
+          "bytes": 1517624,
           "file": "utility_156px_128f_scale-1p5x.png"
         },
         {
@@ -141,7 +141,7 @@
           "frameHeight": 208,
           "frameCount": 128,
           "layout": "vertical",
-          "bytes": 3453996,
+          "bytes": 2489769,
           "file": "utility_208px_128f_scale-2x.png"
         }
       ]
@@ -162,7 +162,7 @@
           "frameHeight": 250,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 218862,
+          "bytes": 171856,
           "file": "machine_250px_6f_scale-1x.png"
         },
         {
@@ -171,7 +171,7 @@
           "frameHeight": 313,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 318561,
+          "bytes": 250732,
           "file": "machine_313px_6f_scale-1p25x.png"
         },
         {
@@ -180,7 +180,7 @@
           "frameHeight": 375,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 423100,
+          "bytes": 336345,
           "file": "machine_375px_6f_scale-1p5x.png"
         },
         {
@@ -189,7 +189,7 @@
           "frameHeight": 500,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 681526,
+          "bytes": 531334,
           "file": "machine_500px_6f_scale-2x.png"
         }
       ]
