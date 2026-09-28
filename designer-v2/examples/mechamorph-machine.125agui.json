@@ -1,40 +1,54 @@
 {
   "format": "125A-GUI",
   "version": 1,
-  "name": "Mechamorph Machine Selector",
+  "name": "Mechamorph Machine Selector Low Profile",
   "asset": {
     "type": "knob"
   },
   "design": {
-    "shape": "cylindrical",
+    "shape": "flat",
     "material": "metal-dark",
-    "baseColor": "#202426FF",
-    "accentColor": "#7F786AFF",
+    "baseColor": "#191B1CFF",
+    "accentColor": "#918B80FF",
     "indicator": {
       "enabled": true,
       "type": "notch",
-      "color": "#E0D7C4FF",
-      "length": 86,
-      "width": 6
+      "color": "#E6DCC8FF",
+      "length": 72,
+      "width": 4
     },
     "expert": {
-      "capEnabled": true,
+      "capEnabled": false,
       "sideDetail": "grooved",
       "accentRing": true,
-      "indicatorRadialPosition": 84,
+      "indicatorRadialPosition": 82,
+      "indicatorMetallic": false,
       "material": {
-        "shininess": 58,
-        "reflectivity": 42
-      }
+        "type": "brushed",
+        "shininess": 42,
+        "reflectivity": 28,
+        "brushDirection": "radial",
+        "brushIntensity": 22
+      },
+      "layers": [
+        {
+          "name": "Body",
+          "diameter": 88,
+          "height": 32,
+          "bevelRadius": 5,
+          "skirtStyle": "cylindrical",
+          "sideDetail": "grooved"
+        }
+      ]
     }
   },
   "lighting": {
-    "preset": "contrast",
+    "preset": "neutral",
     "expert": {
-      "azimuth": 300,
-      "elevation": 38,
-      "aoStrength": 46,
-      "intensity": 104
+      "azimuth": 306,
+      "elevation": 54,
+      "aoStrength": 36,
+      "intensity": 92
     }
   },
   "output": {

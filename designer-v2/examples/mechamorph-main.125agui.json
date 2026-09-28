@@ -1,40 +1,62 @@
 {
   "format": "125A-GUI",
   "version": 1,
-  "name": "Mechamorph Main",
+  "name": "Mechamorph Main Low Profile",
   "asset": {
     "type": "knob"
   },
   "design": {
-    "shape": "stepped",
+    "shape": "compact",
     "material": "metal-dark",
-    "baseColor": "#262A2CFF",
-    "accentColor": "#8A8170FF",
+    "baseColor": "#1B1D1EFF",
+    "accentColor": "#8C877CFF",
     "indicator": {
       "enabled": true,
       "type": "line",
-      "color": "#E0D7C4FF",
-      "length": 70,
-      "width": 3
+      "color": "#E6DCC8FF",
+      "length": 62,
+      "width": 2.6
     },
     "expert": {
       "capEnabled": true,
       "sideDetail": "knurled",
       "accentRing": true,
-      "indicatorRadialPosition": 75,
+      "indicatorRadialPosition": 76,
+      "indicatorMetallic": false,
       "material": {
-        "shininess": 68,
-        "reflectivity": 46
-      }
+        "type": "brushed",
+        "shininess": 44,
+        "reflectivity": 28,
+        "brushDirection": "radial",
+        "brushIntensity": 20
+      },
+      "layers": [
+        {
+          "name": "Body",
+          "diameter": 88,
+          "height": 34,
+          "bevelRadius": 6,
+          "skirtStyle": "cylindrical",
+          "sideDetail": "knurled"
+        },
+        {
+          "name": "Cap",
+          "diameter": 72,
+          "height": 12,
+          "bevelRadius": 5,
+          "skirtStyle": "cylindrical",
+          "sideDetail": "smooth"
+        }
+      ]
     }
   },
   "lighting": {
-    "preset": "contrast",
+    "preset": "neutral",
     "expert": {
-      "azimuth": 308,
-      "elevation": 42,
-      "aoStrength": 46,
-      "intensity": 104
+      "azimuth": 310,
+      "elevation": 56,
+      "aoStrength": 34,
+      "intensity": 92
     }
   },
   "output": {

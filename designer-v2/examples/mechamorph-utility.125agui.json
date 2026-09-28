@@ -1,40 +1,54 @@
 {
   "format": "125A-GUI",
   "version": 1,
-  "name": "Mechamorph Utility",
+  "name": "Mechamorph Utility Low Profile",
   "asset": {
     "type": "knob"
   },
   "design": {
-    "shape": "compact",
+    "shape": "flat",
     "material": "metal-dark",
-    "baseColor": "#262A2CFF",
-    "accentColor": "#8A8170FF",
+    "baseColor": "#1B1D1EFF",
+    "accentColor": "#8C877CFF",
     "indicator": {
       "enabled": true,
       "type": "line",
-      "color": "#E0D7C4FF",
-      "length": 66,
-      "width": 2.5
+      "color": "#E6DCC8FF",
+      "length": 58,
+      "width": 2.1
     },
     "expert": {
-      "capEnabled": true,
+      "capEnabled": false,
       "sideDetail": "grooved",
       "accentRing": true,
-      "indicatorRadialPosition": 73,
+      "indicatorRadialPosition": 75,
+      "indicatorMetallic": false,
       "material": {
-        "shininess": 64,
-        "reflectivity": 46
-      }
+        "type": "brushed",
+        "shininess": 40,
+        "reflectivity": 25,
+        "brushDirection": "radial",
+        "brushIntensity": 18
+      },
+      "layers": [
+        {
+          "name": "Body",
+          "diameter": 86,
+          "height": 30,
+          "bevelRadius": 5,
+          "skirtStyle": "cylindrical",
+          "sideDetail": "grooved"
+        }
+      ]
     }
   },
   "lighting": {
-    "preset": "contrast",
+    "preset": "neutral",
     "expert": {
-      "azimuth": 308,
-      "elevation": 42,
-      "aoStrength": 46,
-      "intensity": 104
+      "azimuth": 310,
+      "elevation": 58,
+      "aoStrength": 32,
+      "intensity": 90
     }
   },
   "output": {
