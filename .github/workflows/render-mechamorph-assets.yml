@@ -1,0 +1,89 @@
+name: Render Mechamorph GUI Assets
+
+on:
+  push:
+    branches:
+      - v0.2.0
+    paths:
+      - 'render-jobs/mechamorph/**'
+      - '.github/workflows/render-mechamorph-assets.yml'
+      - 'designer-v2/examples/mechamorph-*.125agui.json'
+      - 'designer-v2/web/src/renderer.js'
+      - 'designer-v2/core/project-model.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v0.2.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install designer and headless renderer
+        working-directory: designer-v2/web
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+
+      - name: Start Designer web app
+        working-directory: designer-v2/web
+        run: |
+          npm run dev -- --host 127.0.0.1 > /tmp/125a-vite.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:5173 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/125a-vite.log
+          exit 1
+
+      - name: Render Mechamorph multires filmstrips
+        run: |
+          cp render-jobs/mechamorph/headless-export.mjs designer-v2/web/headless-export.mjs
+          cd designer-v2/web
+          node headless-export.mjs
+          rm headless-export.mjs
+
+      - name: Verify generated assets
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('generated-assets/mechamorph-v0.1.0')
+          m=json.loads((root/'manifest.json').read_text())
+          expected={'main':4,'scale':4,'utility':4,'machine':4}
+          for key,count in expected.items():
+              outs=m['controls'][key]['outputs']
+              assert len(outs)==count,(key,len(outs))
+              for item in outs:
+                  p=root/item['file']
+                  assert p.exists() and p.stat().st_size>1000,p
+          print('Mechamorph rendered asset manifest PASS')
+          PY
+
+      - name: Commit rendered assets
+        run: |
+          git config user.name "125A GUI Asset Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add generated-assets/mechamorph-v0.1.0
+          if git diff --cached --quiet; then
+            echo "Rendered assets unchanged."
+            exit 0
+          fi
+          git commit -m "Render Mechamorph multires GUI assets [skip ci]"
+          git push origin HEAD:v0.2.0
+
+      - name: Upload rendered asset package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mechamorph-GUI-Assets-v0.1.0
+          path: generated-assets/mechamorph-v0.1.0
