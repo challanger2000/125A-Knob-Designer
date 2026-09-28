@@ -1,0 +1,55 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "Mechamorph Scale",
+  "asset": {
+    "type": "knob"
+  },
+  "design": {
+    "shape": "stepped",
+    "material": "metal-dark",
+    "baseColor": "#262A2CFF",
+    "accentColor": "#8A8170FF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#E0D7C4FF",
+      "length": 76,
+      "width": 3.4
+    },
+    "expert": {
+      "capEnabled": true,
+      "sideDetail": "knurled",
+      "accentRing": true,
+      "indicatorRadialPosition": 77,
+      "material": {
+        "shininess": 72,
+        "reflectivity": 46
+      }
+    }
+  },
+  "lighting": {
+    "preset": "contrast",
+    "expert": {
+      "azimuth": 308,
+      "elevation": 42,
+      "aoStrength": 46,
+      "intensity": 104
+    }
+  },
+  "output": {
+    "frameWidth": 220,
+    "frameHeight": 220,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [
+      1,
+      1.5,
+      2,
+      3
+    ],
+    "supersample": 2
+  }
+}
