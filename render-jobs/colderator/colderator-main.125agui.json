@@ -2,18 +2,20 @@
   "format": "125A-GUI",
   "version": 1,
   "name": "Colderator Main Snow",
-  "asset": { "type": "knob" },
+  "asset": {
+    "type": "knob"
+  },
   "design": {
     "shape": "domed",
     "material": "aluminium",
     "baseColor": "#F7FBFDFF",
-    "accentColor": "#A9D3E7FF",
+    "accentColor": "#86C9E6FF",
     "indicator": {
       "enabled": true,
       "type": "line",
-      "color": "#365F74FF",
+      "color": "#315E74FF",
       "length": 67,
-      "width": 3.2
+      "width": 3.6
     },
     "expert": {
       "capEnabled": true,
@@ -30,27 +32,27 @@
         {
           "name": "Snow Body",
           "diameter": 100,
-          "height": 74,
-          "bevelRadius": 13,
+          "height": 46,
+          "bevelRadius": 14,
           "skirtStyle": "tapered",
           "material": {
             "type": "solid",
-            "color": "#F4F9FCFF",
-            "shininess": 26,
-            "reflectivity": 18
+            "color": "#F8FBFDFF",
+            "shininess": 34,
+            "reflectivity": 24
           }
         },
         {
           "name": "Ice Cap",
-          "diameter": 79,
-          "height": 22,
-          "bevelRadius": 10,
+          "diameter": 82,
+          "height": 15,
+          "bevelRadius": 9,
           "skirtStyle": "cylindrical",
           "material": {
             "type": "solid",
-            "color": "#FCFEFFFF",
-            "shininess": 46,
-            "reflectivity": 30
+            "color": "#FFFFFFFF",
+            "shininess": 52,
+            "reflectivity": 34
           }
         }
       ]
@@ -61,8 +63,8 @@
     "expert": {
       "azimuth": 318,
       "elevation": 61,
-      "aoStrength": 31,
-      "intensity": 112
+      "aoStrength": 22,
+      "intensity": 118
     }
   },
   "output": {
@@ -72,7 +74,12 @@
     "startAngle": -135,
     "endAngle": 135,
     "layout": "vertical",
-    "scaleExports": [1, 1.25, 1.5, 2],
+    "scaleExports": [
+      1,
+      1.25,
+      1.5,
+      2
+    ],
     "supersample": 2
   }
 }

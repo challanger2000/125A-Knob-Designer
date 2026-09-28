@@ -2,18 +2,20 @@
   "format": "125A-GUI",
   "version": 1,
   "name": "Colderator Character Snow",
-  "asset": { "type": "knob" },
+  "asset": {
+    "type": "knob"
+  },
   "design": {
     "shape": "compact",
     "material": "aluminium",
     "baseColor": "#F6FAFCFF",
-    "accentColor": "#B5D8E8FF",
+    "accentColor": "#91CDE6FF",
     "indicator": {
       "enabled": true,
       "type": "notch",
-      "color": "#416C82FF",
+      "color": "#3A667BFF",
       "length": 57,
-      "width": 2.7
+      "width": 3
     },
     "expert": {
       "capEnabled": true,
@@ -30,27 +32,27 @@
         {
           "name": "Snow Body",
           "diameter": 100,
-          "height": 50,
-          "bevelRadius": 9,
+          "height": 34,
+          "bevelRadius": 10,
           "skirtStyle": "cylindrical",
           "material": {
             "type": "solid",
-            "color": "#F1F7FAFF",
-            "shininess": 22,
-            "reflectivity": 16
+            "color": "#F8FBFDFF",
+            "shininess": 32,
+            "reflectivity": 22
           }
         },
         {
           "name": "Frost Cap",
-          "diameter": 76,
-          "height": 15,
+          "diameter": 79,
+          "height": 11,
           "bevelRadius": 7,
           "skirtStyle": "cylindrical",
           "material": {
             "type": "solid",
             "color": "#FFFFFFFF",
-            "shininess": 40,
-            "reflectivity": 27
+            "shininess": 48,
+            "reflectivity": 31
           }
         }
       ]
@@ -61,8 +63,8 @@
     "expert": {
       "azimuth": 318,
       "elevation": 60,
-      "aoStrength": 34,
-      "intensity": 110
+      "aoStrength": 24,
+      "intensity": 116
     }
   },
   "output": {
@@ -72,7 +74,12 @@
     "startAngle": -135,
     "endAngle": 135,
     "layout": "vertical",
-    "scaleExports": [1, 1.25, 1.5, 2],
+    "scaleExports": [
+      1,
+      1.25,
+      1.5,
+      2
+    ],
     "supersample": 2
   }
 }
