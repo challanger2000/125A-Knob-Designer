@@ -1,0 +1,55 @@
+{
+  "format": "125A-GUI",
+  "version": 1,
+  "name": "Mechamorph Utility",
+  "asset": {
+    "type": "knob"
+  },
+  "design": {
+    "shape": "compact",
+    "material": "metal-dark",
+    "baseColor": "#262A2CFF",
+    "accentColor": "#8A8170FF",
+    "indicator": {
+      "enabled": true,
+      "type": "line",
+      "color": "#E0D7C4FF",
+      "length": 66,
+      "width": 2.5
+    },
+    "expert": {
+      "capEnabled": true,
+      "sideDetail": "grooved",
+      "accentRing": true,
+      "indicatorRadialPosition": 73,
+      "material": {
+        "shininess": 64,
+        "reflectivity": 46
+      }
+    }
+  },
+  "lighting": {
+    "preset": "contrast",
+    "expert": {
+      "azimuth": 308,
+      "elevation": 42,
+      "aoStrength": 46,
+      "intensity": 104
+    }
+  },
+  "output": {
+    "frameWidth": 104,
+    "frameHeight": 104,
+    "frameCount": 128,
+    "startAngle": -135,
+    "endAngle": 135,
+    "layout": "vertical",
+    "scaleExports": [
+      1,
+      1.5,
+      2,
+      3
+    ],
+    "supersample": 2
+  }
+}
