@@ -41,6 +41,9 @@ async function prepare(project){
     const renderer=new KnobPreviewRenderer(canvas);
     window.__headlessRenderer=renderer;
     renderer.update(p);
+    renderer.camera.position.set(0,9.8,3.0);
+    renderer.camera.lookAt(0,0.15,0);
+    renderer.camera.updateProjectionMatrix();
     renderer.setPreviewAngle((p.output.startAngle+p.output.endAngle)*0.5);
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   },project);
@@ -51,6 +54,9 @@ async function renderStrip(project,fileName){
   await page.evaluate(async ({p,fileName})=>{
     const renderer=window.__headlessRenderer;
     renderer.update(p);
+    renderer.camera.position.set(0,9.8,3.0);
+    renderer.camera.lookAt(0,0.15,0);
+    renderer.camera.updateProjectionMatrix();
     const blob=await renderer.exportFilmstrip(p);
     const a=document.createElement('a');
     const url=URL.createObjectURL(blob);
