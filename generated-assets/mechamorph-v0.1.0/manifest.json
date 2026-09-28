@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-28T05:38:52.709Z",
+  "generatedAt": "2026-09-28T06:00:14.099Z",
   "renderer": "125A GUI Designer v0.2.0 / Three.js",
   "controls": {
     "main": {
@@ -162,7 +162,7 @@
           "frameHeight": 250,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 225385,
+          "bytes": 218862,
           "file": "machine_250px_6f_scale-1x.png"
         },
         {
@@ -171,7 +171,7 @@
           "frameHeight": 313,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 325103,
+          "bytes": 318561,
           "file": "machine_313px_6f_scale-1p25x.png"
         },
         {
@@ -180,7 +180,7 @@
           "frameHeight": 375,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 436232,
+          "bytes": 423100,
           "file": "machine_375px_6f_scale-1p5x.png"
         },
         {
@@ -189,7 +189,7 @@
           "frameHeight": 500,
           "frameCount": 6,
           "layout": "vertical",
-          "bytes": 701957,
+          "bytes": 681526,
           "file": "machine_500px_6f_scale-2x.png"
         }
       ]
