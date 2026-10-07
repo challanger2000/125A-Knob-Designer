@@ -92,32 +92,22 @@ The family is designed to be reused by:
 - future 125A SteelKnob-based products
 
 
-## 125A Chrome Ring v1.0
 
-Approved reusable high-gloss chrome bezel family for `SteelKnob`-style controls.
+## 125A Chrome Ring v2 — current master
 
-Package:
+Authoritative asset:
 
-`packages/125A_ChromeRing_MultiRes_v1.0.zip`
+`packages/125A_ChromeRing_Master_v2.png`
 
-The package contains 12 transparent PNG resources:
+This is the **only approved Chrome Ring source**. The previous v1 S/M/L multi-resolution family is retired and removed because its segmented/high-contrast reflections did not produce a convincing chrome bezel at plugin scale.
 
-### Chrome Ring S
-- `125A_ChromeRing_S_64px_100pct.png`
-- `125A_ChromeRing_S_96px_150pct.png`
-- `125A_ChromeRing_S_128px_200pct.png`
-- `125A_ChromeRing_S_192px_300pct.png`
+### Integration contract
 
-### Chrome Ring M
-- `125A_ChromeRing_M_96px_100pct.png`
-- `125A_ChromeRing_M_144px_150pct.png`
-- `125A_ChromeRing_M_192px_200pct.png`
-- `125A_ChromeRing_M_288px_300pct.png`
-
-### Chrome Ring L
-- `125A_ChromeRing_L_128px_100pct.png`
-- `125A_ChromeRing_L_192px_150pct.png`
-- `125A_ChromeRing_L_256px_200pct.png`
-- `125A_ChromeRing_L_384px_300pct.png`
-
-Integration rule: the PNG is material only. The consuming knob code owns center, radius, hitbox, pointer, value arc and parameter interaction. Select S/M/L from logical knob size and select 100/150/200/300% from absolute UI/content scale. Never hand-offset the ring.
+- high-gloss polished chrome bezel material only;
+- transparent center and transparent outer area;
+- no pointer, value arc, ticks, labels or hitbox;
+- consuming `SteelKnob` owns center, radius, pointer, arc, hitbox and parameter interaction;
+- place/scale the material from the same computed knob geometry — never hand-offset it;
+- derive plugin-resolution variants from this master only when required;
+- 100% and 150% UI zoom must remain sharp and concentric;
+- consuming plugins must pin the exact Knob-Designer commit used for the asset.
