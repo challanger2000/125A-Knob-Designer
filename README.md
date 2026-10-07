@@ -44,3 +44,49 @@ Filmstrips are vertical, 128 frames each.
 - 0 % maps to frame 0 and 100 % maps to frame 127;
 - integration must not alter DSP, parameter IDs, defaults, state or automation;
 - always integrate into the current development branch/HEAD of the consuming plugin's authoritative Final repository.
+
+
+## 125A Chrome Ring family
+
+Reusable mirror-polished chrome bezel assets for 125A SteelKnob-based controls.
+
+### Multi-resolution exports
+
+#### Chrome Ring L
+- `exports/chrome/125A_ChromeRing_L_128px_100pct.png`
+- `exports/chrome/125A_ChromeRing_L_192px_150pct.png`
+- `exports/chrome/125A_ChromeRing_L_256px_200pct.png`
+- `exports/chrome/125A_ChromeRing_L_384px_300pct.png`
+
+#### Chrome Ring M
+- `exports/chrome/125A_ChromeRing_M_96px_100pct.png`
+- `exports/chrome/125A_ChromeRing_M_144px_150pct.png`
+- `exports/chrome/125A_ChromeRing_M_192px_200pct.png`
+- `exports/chrome/125A_ChromeRing_M_288px_300pct.png`
+
+#### Chrome Ring S
+- `exports/chrome/125A_ChromeRing_S_64px_100pct.png`
+- `exports/chrome/125A_ChromeRing_S_96px_150pct.png`
+- `exports/chrome/125A_ChromeRing_S_128px_200pct.png`
+- `exports/chrome/125A_ChromeRing_S_192px_300pct.png`
+
+### SteelKnob integration contract
+
+- ring asset contains only the chrome bezel;
+- center hole and outside area remain transparent;
+- SteelKnob remains authoritative for center, radius, pointer, value arc, ticks, hitbox and automation;
+- ring bitmap is drawn into the exact computed bezel rectangle, never manually offset;
+- consuming plugins choose S / M / L from the control's physical size;
+- consuming plugins choose 100 / 150 / 200 / 300 % from absolute UI/content scale;
+- do not upscale a lower-resolution ring when a matching higher-resolution export exists;
+- all variants use the same optical center and chrome lighting direction;
+- integration must not change parameter IDs, defaults, state, DSP or automation.
+
+### Intended consumers
+
+The family is designed to be reused by:
+- High Gain Guitar Finisher V3
+- Bass Finisher
+- Ultimate Finisher
+- MixEngine
+- future 125A SteelKnob-based products
