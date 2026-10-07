@@ -90,3 +90,34 @@ The family is designed to be reused by:
 - Ultimate Finisher
 - MixEngine
 - future 125A SteelKnob-based products
+
+
+## 125A Chrome Ring v1.0
+
+Approved reusable high-gloss chrome bezel family for `SteelKnob`-style controls.
+
+Package:
+
+`packages/125A_ChromeRing_MultiRes_v1.0.zip`
+
+The package contains 12 transparent PNG resources:
+
+### Chrome Ring S
+- `125A_ChromeRing_S_64px_100pct.png`
+- `125A_ChromeRing_S_96px_150pct.png`
+- `125A_ChromeRing_S_128px_200pct.png`
+- `125A_ChromeRing_S_192px_300pct.png`
+
+### Chrome Ring M
+- `125A_ChromeRing_M_96px_100pct.png`
+- `125A_ChromeRing_M_144px_150pct.png`
+- `125A_ChromeRing_M_192px_200pct.png`
+- `125A_ChromeRing_M_288px_300pct.png`
+
+### Chrome Ring L
+- `125A_ChromeRing_L_128px_100pct.png`
+- `125A_ChromeRing_L_192px_150pct.png`
+- `125A_ChromeRing_L_256px_200pct.png`
+- `125A_ChromeRing_L_384px_300pct.png`
+
+Integration rule: the PNG is material only. The consuming knob code owns center, radius, hitbox, pointer, value arc and parameter interaction. Select S/M/L from logical knob size and select 100/150/200/300% from absolute UI/content scale. Never hand-offset the ring.

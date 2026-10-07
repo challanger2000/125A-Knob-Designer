@@ -1,0 +1,31 @@
+125A Chrome Ring v1.0
+======================
+
+Source of truth:
+challanger2000/125A-Knob-Designer
+branch: chrome-ring-assets
+
+Package:
+packages/125A_ChromeRing_MultiRes_v1.0.zip
+
+Contents:
+exports/125A_ChromeRing_S_64px_100pct.png
+exports/125A_ChromeRing_S_96px_150pct.png
+exports/125A_ChromeRing_S_128px_200pct.png
+exports/125A_ChromeRing_S_192px_300pct.png
+exports/125A_ChromeRing_M_96px_100pct.png
+exports/125A_ChromeRing_M_144px_150pct.png
+exports/125A_ChromeRing_M_192px_200pct.png
+exports/125A_ChromeRing_M_288px_300pct.png
+exports/125A_ChromeRing_L_128px_100pct.png
+exports/125A_ChromeRing_L_192px_150pct.png
+exports/125A_ChromeRing_L_256px_200pct.png
+exports/125A_ChromeRing_L_384px_300pct.png
+
+Contract:
+- transparent PNG, chrome ring only
+- transparent center and outer area
+- no pointer, value arc, tick marks, text or hitbox
+- S/M/L are distinct design families
+- 100/150/200/300% are true exported resolutions
+- consuming plugin places the selected ring exactly into its computed bezel rectangle
