@@ -1,0 +1,24 @@
+125A Finisher Ring Asset Pack v2
+================================
+
+Status: exact circular master
+Style: dark gunmetal / polished machine steel
+Background: transparent
+Use: outer ring replacement/overlay for 125A Finisher knob family
+
+Master file:
+- 125A_FinisherRing_Master_Gunmetal_Exact.png (2048x2048)
+
+Derived runtime sizes:
+- 125A_FinisherRing_S_64px_100pct.png
+- 125A_FinisherRing_S_96px_150pct.png
+- 125A_FinisherRing_M_96px_100pct.png
+- 125A_FinisherRing_M_144px_150pct.png
+- 125A_FinisherRing_H_128px_100pct.png
+- 125A_FinisherRing_H_192px_150pct.png
+
+Contract:
+- exact concentric circle master
+- transparent center and outer area
+- derived from one common master for consistency
+- intended for 100% and 150% Finisher UI zoom
