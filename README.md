@@ -34,7 +34,7 @@ Filmstrips are vertical, 128 frames each.
 - `exports/125A_MixEngine_Analog_S_128px_200pct_128f.png` — 128 × 16384
 - `exports/125A_MixEngine_Analog_S_192px_300pct_128f.png` — 192 × 24576
 
-## Integration contract
+## MixEngine integration contract
 
 - preserve all 128 frames and their order;
 - preserve S / M / L as distinct design sizes;
@@ -45,69 +45,48 @@ Filmstrips are vertical, 128 frames each.
 - integration must not alter DSP, parameter IDs, defaults, state or automation;
 - always integrate into the current development branch/HEAD of the consuming plugin's authoritative Final repository.
 
+## 125A Finisher Ring — current shared master
 
-## 125A Chrome Ring family
+Reusable dark gunmetal / polished-machine-steel bezel assets for the 125A Finisher family.
 
-Reusable mirror-polished chrome bezel assets for 125A SteelKnob-based controls.
+Authoritative master:
 
-### Multi-resolution exports
+`packages/125A_FinisherRing_Master_Gunmetal_Exact.png`
 
-#### Chrome Ring L
-- `exports/chrome/125A_ChromeRing_L_128px_100pct.png`
-- `exports/chrome/125A_ChromeRing_L_192px_150pct.png`
-- `exports/chrome/125A_ChromeRing_L_256px_200pct.png`
-- `exports/chrome/125A_ChromeRing_L_384px_300pct.png`
+This master is mathematically circular and concentric. It replaces the retired bright Chrome Ring experiments.
 
-#### Chrome Ring M
-- `exports/chrome/125A_ChromeRing_M_96px_100pct.png`
-- `exports/chrome/125A_ChromeRing_M_144px_150pct.png`
-- `exports/chrome/125A_ChromeRing_M_192px_200pct.png`
-- `exports/chrome/125A_ChromeRing_M_288px_300pct.png`
+### Runtime exports
 
-#### Chrome Ring S
-- `exports/chrome/125A_ChromeRing_S_64px_100pct.png`
-- `exports/chrome/125A_ChromeRing_S_96px_150pct.png`
-- `exports/chrome/125A_ChromeRing_S_128px_200pct.png`
-- `exports/chrome/125A_ChromeRing_S_192px_300pct.png`
+#### S
+- `packages/125A_FinisherRing_S_64px_100pct.png`
+- `packages/125A_FinisherRing_S_96px_150pct.png`
 
-### SteelKnob integration contract
+#### M
+- `packages/125A_FinisherRing_M_96px_100pct.png`
+- `packages/125A_FinisherRing_M_144px_150pct.png`
 
-- ring asset contains only the chrome bezel;
+#### H
+- `packages/125A_FinisherRing_H_128px_100pct.png`
+- `packages/125A_FinisherRing_H_192px_150pct.png`
+
+### Finisher Ring integration contract
+
+- ring asset contains only the dark gunmetal bezel;
 - center hole and outside area remain transparent;
-- SteelKnob remains authoritative for center, radius, pointer, value arc, ticks, hitbox and automation;
-- ring bitmap is drawn into the exact computed bezel rectangle, never manually offset;
-- consuming plugins choose S / M / L from the control's physical size;
-- consuming plugins choose 100 / 150 / 200 / 300 % from absolute UI/content scale;
-- do not upscale a lower-resolution ring when a matching higher-resolution export exists;
-- all variants use the same optical center and chrome lighting direction;
-- integration must not change parameter IDs, defaults, state, DSP or automation.
+- use one authoritative master; runtime variants are derived from it;
+- SteelKnob remains authoritative for center, pointer, value arc, ticks, hitbox and automation;
+- the bitmap must be drawn from the exact computed knob center and bezel geometry, never by a hand-tuned offset;
+- the bitmap replaces or completely covers the old programmatic outer bezel;
+- 100 % and 150 % UI zoom use matching native-resolution assets; do not upscale the 100 % raster for 150 %;
+- S / M / H are the shared Finisher size classes;
+- integration must not alter DSP, parameter IDs, defaults, state or automation;
+- consuming plugins must pin the exact Knob-Designer commit used for the assets.
 
 ### Intended consumers
 
-The family is designed to be reused by:
 - High Gain Guitar Finisher V3
 - Bass Finisher
 - Ultimate Finisher
-- MixEngine
-- future 125A SteelKnob-based products
+- future 125A Finisher products
 
-
-
-## 125A Chrome Ring v2 — current master
-
-Authoritative asset:
-
-`packages/125A_ChromeRing_Master_v2.png`
-
-This is the **only approved Chrome Ring source**. The previous v1 S/M/L multi-resolution family is retired and removed because its segmented/high-contrast reflections did not produce a convincing chrome bezel at plugin scale.
-
-### Integration contract
-
-- high-gloss polished chrome bezel material only;
-- transparent center and transparent outer area;
-- no pointer, value arc, ticks, labels or hitbox;
-- consuming `SteelKnob` owns center, radius, pointer, arc, hitbox and parameter interaction;
-- place/scale the material from the same computed knob geometry — never hand-offset it;
-- derive plugin-resolution variants from this master only when required;
-- 100% and 150% UI zoom must remain sharp and concentric;
-- consuming plugins must pin the exact Knob-Designer commit used for the asset.
+The current asset manifest is `packages/125A_FinisherRing_MANIFEST.txt`.
